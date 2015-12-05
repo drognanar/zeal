@@ -186,21 +186,15 @@ MainWindow::MainWindow(Core::Application *app, QWidget *parent) :
     m_forwardMenu = new QMenu(ui->forwardButton);
     ui->forwardButton->setMenu(m_forwardMenu);
 
-    displayViewActions();
-
     // treeView and lineEdit
     ui->lineEdit->setTreeView(ui->treeView);
     ui->lineEdit->setFocus();
-    setupSearchBoxCompletions();
+
     SearchItemDelegate *delegate = new SearchItemDelegate(ui->treeView);
     connect(ui->lineEdit, &QLineEdit::textChanged, [delegate](const QString &text) {
         delegate->setHighlight(Zeal::SearchQuery::fromString(text).query());
     });
     ui->treeView->setItemDelegate(delegate);
-
-    createTab();
-    /// FIXME: QTabBar does not emit currentChanged() after the first addTab() call
-    reloadTabState();
 
     connect(ui->treeView, &QTreeView::clicked, [this](const QModelIndex &index) {
         m_treeViewClicked = true;
@@ -343,6 +337,12 @@ MainWindow::MainWindow(Core::Application *app, QWidget *parent) :
                                             "Remove or use the old docset storage to avoid this message in the future."))
                                  .arg(QDir::toNativeSeparators(oldDocsetDir), QDir::toNativeSeparators(m_settings->docsetPath)));
     }
+
+    displayViewActions();
+    setupSearchBoxCompletions();
+    createTab();
+    /// FIXME: QTabBar does not emit currentChanged() after the first addTab() call
+    reloadTabState();
 
     if (m_settings->checkForUpdate)
         m_application->checkForUpdate(true);
