@@ -26,12 +26,17 @@
 
 #include "searchresult.h"
 
+#include <memory>
 #include <QIcon>
 #include <QMap>
 #include <QMetaObject>
 #include <QSqlDatabase>
 
 namespace Zeal {
+
+class DocsetSearchStrategy;
+class SearchQuery;
+class SearchResult;
 
 class Docset : public QObject
 {
@@ -49,7 +54,6 @@ public:
     QString version() const;
     QString revision() const;
 
-    QString path() const;
     QString documentPath() const;
     QIcon icon() const;
     QString indexFilePath() const;
@@ -64,8 +68,9 @@ public:
 
     /// FIXME: This is an ugly workaround before we have a proper docset sources implementation
     bool hasUpdate = false;
+    const static int MaxDocsetResultsCount = 500;
+    const static int TotalBuckets = 20;
 
-private:
     enum class Type {
         Invalid,
         Dash,
@@ -73,13 +78,21 @@ private:
     };
 
     QSqlDatabase database() const;
+
+    static QString parseSymbolType(const QString &str);
+    static int scoreSubstringResult(const SearchQuery &query, const QString result);
+
+    Docset::Type type() const;
+
+private:
     void loadMetadata();
     void countSymbols();
     void loadSymbols(const QString &symbolType) const;
     void loadSymbols(const QString &symbolType, const QString &symbolString) const;
     void createIndex();
 
-    static QString parseSymbolType(const QString &str);
+    static bool endsWithSeparator(QString result, int pos);
+    static int separators(QString result, int pos);
 
     QString m_sourceId;
     QString m_name;
@@ -96,6 +109,9 @@ private:
     QMap<QString, QString> m_symbolStrings;
     QMap<QString, int> m_symbolCounts;
     mutable QMap<QString, QMap<QString, QString>> m_symbols;
+    uint64_t m_symbolsTotal;
+
+    std::unique_ptr<DocsetSearchStrategy> m_searchStrategy;
 };
 
 } // namespace Zeal
