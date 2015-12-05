@@ -27,7 +27,7 @@
 
 AboutDialog::AboutDialog(QWidget *parent) :
     QDialog(parent),
-    ui(new Ui::AboutDialog)
+    ui(std::unique_ptr<Ui::AboutDialog>(new Ui::AboutDialog))
 {
     ui->setupUi(this);
 
@@ -41,5 +41,4 @@ AboutDialog::AboutDialog(QWidget *parent) :
 
 AboutDialog::~AboutDialog()
 {
-    delete ui;
 }
