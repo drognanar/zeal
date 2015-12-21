@@ -56,8 +56,6 @@ namespace Ui {
 class MainWindow;
 }
 
-class SearchItemDelegate;
-
 namespace Zeal {
 
 namespace Core {
@@ -67,9 +65,9 @@ class Settings;
 
 class ListModel;
 class NetworkAccessManager;
+class SearchItemDelegate;
 class SearchModel;
 class SettingsDialog;
-
 }
 
 // Represents per tab search state.
@@ -128,9 +126,12 @@ private slots:
 
 private:
     void displayViewActions();
+    void displayTreeView();
+    void displaySections();
     void setupSearchBoxCompletions();
     void reloadTabState();
     void displayTabs();
+    SearchState *currentSearchState();
     QString docsetName(const QUrl &url) const;
     QIcon docsetIcon(const QString &docsetName) const;
     QAction *addHistoryAction(QWebHistory *history, const QWebHistoryItem &item);
@@ -146,7 +147,7 @@ private:
     Zeal::Core::Settings *m_settings = nullptr;
     std::unique_ptr<Zeal::NetworkAccessManager> m_zealNetworkManager;
     std::unique_ptr<Zeal::ListModel> m_zealListModel;
-    std::unique_ptr<SearchItemDelegate> m_searchItemDelegate;
+    std::unique_ptr<Zeal::SearchItemDelegate> m_searchItemDelegate;
     std::unique_ptr<Zeal::SettingsDialog> m_settingsDialog;
 
     std::unique_ptr<QMenu> m_backMenu;
