@@ -81,17 +81,17 @@ MainWindow::MainWindow(Core::Application *app, QWidget *parent) :
     ui(std::unique_ptr<Ui::MainWindow>(new Ui::MainWindow)),
     m_application(app),
     m_settings(app->settings()),
-    m_zealNetworkManager(std::unique_ptr<NetworkAccessManager>(new NetworkAccessManager(this))),
-    m_zealListModel(std::unique_ptr<ListModel>(new ListModel(app->docsetRegistry(), this))),
-    m_settingsDialog(std::unique_ptr<SettingsDialog>(new SettingsDialog(app, m_zealListModel.get(), this))),
-    m_deferOpenUrl(std::unique_ptr<QTimer>(new QTimer())),
-    m_globalShortcut(new QxtGlobalShortcut(m_settings->showShortcut, this))
+    m_zealNetworkManager(new NetworkAccessManager(this)),
+    m_zealListModel(new ListModel(app->docsetRegistry(), this)),
+    m_settingsDialog(new SettingsDialog(app, m_zealListModel.get(), this)),
+    m_deferOpenUrl(new QTimer()),
+    m_globalShortcut(new QxtGlobalShortcut(m_settings->showShortcut, this)),
+    m_tabBar(new QTabBar(this))
 {
     connect(m_settings, &Core::Settings::updated, this, &MainWindow::applySettings);
 
     QFontDatabase::addApplicationFont(":/font/ionicons.ttf");
 
-    m_tabBar = new QTabBar(this);
     m_tabBar->installEventFilter(this);
 
     setWindowIcon(QIcon::fromTheme(QStringLiteral("zeal"), QIcon(QStringLiteral(":/zeal.ico"))));
@@ -201,6 +201,7 @@ MainWindow::MainWindow(Core::Application *app, QWidget *parent) :
         m_treeViewClicked = true;
         ui->treeView->activated(index);
     });
+
     m_seeAlsoItemDelegate = std::unique_ptr<SeeAlsoDelegate>(new SeeAlsoDelegate());
     ui->sections->setItemDelegate(m_seeAlsoItemDelegate.get());
     connect(ui->sections, &QListView::clicked, [this](const QModelIndex &index) {
@@ -307,10 +308,10 @@ MainWindow::MainWindow(Core::Application *app, QWidget *parent) :
     m_tabBar->setElideMode(Qt::ElideRight);
     m_tabBar->setStyleSheet(QStringLiteral("QTabBar::tab { width: 150px; height: 30px; }"));
 
-    connect(m_tabBar, &QTabBar::currentChanged, this, &MainWindow::goToTab);
-    connect(m_tabBar, &QTabBar::tabCloseRequested, this, &MainWindow::closeTab);
+    connect(m_tabBar.get(), &QTabBar::currentChanged, this, &MainWindow::goToTab);
+    connect(m_tabBar.get(), &QTabBar::tabCloseRequested, this, &MainWindow::closeTab);
 
-    ((QHBoxLayout *)ui->tabBarFrame->layout())->insertWidget(2, m_tabBar, 0, Qt::AlignBottom);
+    ((QHBoxLayout *)ui->tabBarFrame->layout())->insertWidget(2, m_tabBar.get(), 0, Qt::AlignBottom);
 
     connect(ui->openUrlButton, &QToolButton::clicked, [this]() {
         const QUrl url(ui->webView->page()->history()->currentItem().url());
@@ -817,7 +818,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
 
 bool MainWindow::eventFilter(QObject *object, QEvent *event)
 {
-    if (object == m_tabBar && event->type() == QEvent::MouseButtonRelease) {
+    if (object == m_tabBar.get() && event->type() == QEvent::MouseButtonRelease) {
         QMouseEvent *e = reinterpret_cast<QMouseEvent *>(event);
         if (e->button() == Qt::MiddleButton) {
             const int index = m_tabBar->tabAt(e->pos());

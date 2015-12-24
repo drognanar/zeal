@@ -57,7 +57,7 @@ private:
     const static int CacheSize = 10;
 
     std::unique_ptr<DocsetSearchStrategy> m_search;
-    QCache<QString, QList<SearchResult> > m_cache;
+    QCache<QString, QList<SearchResult>> m_cache;
 };
 
 }

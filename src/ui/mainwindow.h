@@ -76,9 +76,9 @@ class SettingsDialog;
 struct SearchState
 {
     QWebPage *page;
-    // model representing sections
+    // model representing sections (related links)
     Zeal::SearchModel *sectionsList;
-    // model representing searched for items
+    // model representing searched for items (search query results)
     Zeal::SearchModel *zealSearch;
     // query being searched for
     QString searchQuery;
@@ -163,7 +163,7 @@ private:
 
     QxtGlobalShortcut *m_globalShortcut = nullptr;
 
-    QTabBar *m_tabBar = nullptr;
+    std::unique_ptr<QTabBar> m_tabBar;
 
     QSystemTrayIcon *m_trayIcon = nullptr;
 

@@ -140,7 +140,7 @@ void MergeQueryResults(QList<SearchResult> &finalResult, const QList<SearchResul
 
 void DocsetRegistry::_runQueryAsync(const QString &query, const CancellationToken token)
 {
-    QFuture<QList<SearchResult> > queryResultsFuture = QtConcurrent::mappedReduced(
+    QFuture<QList<SearchResult>> queryResultsFuture = QtConcurrent::mappedReduced(
                 docsets(),
                 std::bind(&Docset::search, std::placeholders::_1, query, token),
                 &MergeQueryResults);

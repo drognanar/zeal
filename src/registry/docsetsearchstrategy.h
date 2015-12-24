@@ -37,7 +37,6 @@ class SearchResult;
 class DocsetSearchStrategy
 {
 public:
-    DocsetSearchStrategy();
     virtual QList<SearchResult> search(const QString &query, CancellationToken token) = 0;
 
     /// Used to filter out cached results.
