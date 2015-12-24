@@ -36,7 +36,7 @@ QList<SearchResult> DashToc::relatedLinks(const Docset *docset, const QUrl &url)
         QString entryType = entryObject[QStringLiteral("entryType")].toString();
         QString path = entryObject[QStringLiteral("path")].toString();
 
-        QString fullPath = fileName + "#" + path;
+        QString fullPath = fileName + "#" + QUrl::fromPercentEncoding(path.toUtf8());
         results.append(SearchResult{name, "", entryType, const_cast<Docset*>(docset), fullPath, "", 0, isHeader});
     }
 
