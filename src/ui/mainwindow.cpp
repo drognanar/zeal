@@ -27,6 +27,7 @@
 #include "aboutdialog.h"
 #include "networkaccessmanager.h"
 #include "searchitemdelegate.h"
+#include "seealsodelegate.h"
 #include "settingsdialog.h"
 #include "core/application.h"
 #include "core/settings.h"
@@ -200,6 +201,8 @@ MainWindow::MainWindow(Core::Application *app, QWidget *parent) :
         m_treeViewClicked = true;
         ui->treeView->activated(index);
     });
+    m_seeAlsoItemDelegate = std::unique_ptr<SeeAlsoDelegate>(new SeeAlsoDelegate());
+    ui->sections->setItemDelegate(m_seeAlsoItemDelegate.get());
     connect(ui->sections, &QListView::clicked, [this](const QModelIndex &index) {
         m_treeViewClicked = true;
         ui->sections->activated(index);

@@ -59,6 +59,9 @@ QVariant SearchModel::data(const QModelIndex &index, int role) const
     case Qt::DecorationRole:
         return item->docset->icon();
 
+    case Roles::IsHeaderRole:
+        return item->isHeader;
+
     case Roles::TypeIconRole:
         if (index.column() != 0)
             return QVariant();

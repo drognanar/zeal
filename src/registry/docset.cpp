@@ -21,6 +21,7 @@
 **
 ****************************************************************************/
 
+#include "dashtoc.h"
 #include "docset.h"
 #include "cachingsearchstrategy.h"
 #include "docsetsearchstrategy.h"
@@ -130,7 +131,7 @@ QList<SearchResult> DashSearchStrategy::search(const QString &rawQuery, Cancella
         SearchResult newResult(SearchResult{itemName, QString(),
                                m_docset->parseSymbolType(query.value(1).toString()),
                                const_cast<Docset *>(m_docset),
-                               path, sanitizedQuery, score});
+                               path, sanitizedQuery, score, false});
 
         results << newResult;
         resultCount++;
@@ -370,6 +371,11 @@ QList<SearchResult> Docset::search(const QString &rawQuery, CancellationToken to
 
 QList<SearchResult> Docset::relatedLinks(const QUrl &url) const
 {
+    // Try to read the .dashtoc file first since it has more accurate related links.
+    QList<SearchResult> dashTocResults = DashToc::relatedLinks(this, url);
+    if (!dashTocResults.empty())
+        return dashTocResults;
+
     QList<SearchResult> results;
 
     // Strip docset path and anchor from url
@@ -408,7 +414,7 @@ QList<SearchResult> Docset::relatedLinks(const QUrl &url) const
 
         results.append(SearchResult{sectionName, QString(),
                                     parseSymbolType(query.value(1).toString()),
-                                    const_cast<Docset *>(this), sectionPath, QString(), 0});
+                                    const_cast<Docset *>(this), sectionPath, QString(), 0, false});
     }
 
     if (results.size() == 1)

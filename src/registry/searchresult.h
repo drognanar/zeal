@@ -45,6 +45,8 @@ struct SearchResult
 
     int score;
 
+    bool isHeader;
+
     bool operator<(const SearchResult &r) const;
 
     SearchResult withScore(int newScore) const;

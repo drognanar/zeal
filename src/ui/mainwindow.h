@@ -66,6 +66,7 @@ class Settings;
 class ListModel;
 class NetworkAccessManager;
 class SearchItemDelegate;
+class SeeAlsoDelegate;
 class SearchModel;
 class SettingsDialog;
 }
@@ -148,6 +149,7 @@ private:
     std::unique_ptr<Zeal::NetworkAccessManager> m_zealNetworkManager;
     std::unique_ptr<Zeal::ListModel> m_zealListModel;
     std::unique_ptr<Zeal::SearchItemDelegate> m_searchItemDelegate;
+    std::unique_ptr<Zeal::SeeAlsoDelegate> m_seeAlsoItemDelegate;
     std::unique_ptr<Zeal::SettingsDialog> m_settingsDialog;
 
     std::unique_ptr<QMenu> m_backMenu;

@@ -35,7 +35,8 @@ class SearchModel : public QAbstractItemModel
     Q_OBJECT
 public:
     enum Roles {
-        TypeIconRole = Qt::UserRole
+        TypeIconRole = Qt::UserRole,
+        IsHeaderRole = Qt::UserRole + 1
     };
 
     explicit SearchModel(QObject *parent = nullptr);
