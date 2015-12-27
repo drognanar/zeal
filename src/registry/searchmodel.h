@@ -30,6 +30,10 @@
 
 namespace Zeal {
 
+/**
+ * @brief The SearchModel class
+ * A list model for data to display in search results/see also lists.
+ */
 class SearchModel : public QAbstractItemModel
 {
     Q_OBJECT

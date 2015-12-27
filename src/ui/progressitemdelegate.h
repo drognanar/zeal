@@ -26,6 +26,10 @@
 
 #include <QItemDelegate>
 
+/**
+ * @brief The ProgressItemDelegate class
+ * A delegate that defines how to render items in available docsets list.
+ */
 class ProgressItemDelegate : public QItemDelegate
 {
     Q_OBJECT

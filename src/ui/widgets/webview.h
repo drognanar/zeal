@@ -33,6 +33,10 @@
     #include <QWebView>
 #endif
 
+/**
+ * @brief The WebView class
+ * A zeal browser window. Adds zooming functionality.
+ */
 class WebView : public QWebView
 {
     Q_OBJECT

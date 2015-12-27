@@ -26,6 +26,11 @@
 
 #include <QItemDelegate>
 
+/**
+ * @brief The DocsetListItemDelegate class
+ * Delegate that defines how to render items in
+ * install docsets lists.
+ */
 class DocsetListItemDelegate : public QItemDelegate
 {
     Q_OBJECT

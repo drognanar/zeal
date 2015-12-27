@@ -24,12 +24,16 @@
 #ifndef CANCELLATIONTOKEN_H
 #define CANCELLATIONTOKEN_H
 
-#include <QSharedPointer>
+#include <memory>
+#include <QObject>
 
 namespace Zeal {
 
-/// Token that stores whether cancel was called on it.
-/// In async code can be used to check if another thread called cancel.
+/**
+ * @brief The CancellationToken struct
+ * Token that stores whether cancel was called on it.
+ * In async code can be used to check if another thread has cancelled a call.
+ */
 struct CancellationToken
 {
 public:
@@ -38,11 +42,13 @@ public:
     void cancel();
 
 private:
-    QSharedPointer<bool> m_cancelled;
+    std::shared_ptr<bool> m_cancelled;
 };
 
 }
 
+// Declare CancellationToken as metatype in order to pass it
+// using QMetaObject::invoke.
 Q_DECLARE_METATYPE(Zeal::CancellationToken)
 
 #endif // CANCELLATIONTOKEN_H

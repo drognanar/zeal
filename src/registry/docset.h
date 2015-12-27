@@ -39,6 +39,10 @@ class DocsetSearchStrategy;
 class SearchQuery;
 class SearchResult;
 
+/**
+ * @brief The Docset class
+ * A single docset.
+ */
 class Docset : public QObject
 {
     Q_OBJECT

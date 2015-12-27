@@ -32,6 +32,10 @@ namespace Zeal {
 class Docset;
 class DocsetRegistry;
 
+/**
+ * @brief The ListModel class
+ * A list model for data to display in ToC tree.
+ */
 class ListModel : public QAbstractItemModel
 {
     Q_OBJECT

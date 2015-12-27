@@ -7,8 +7,6 @@
 #include <QPainter>
 #include <QStyleOptionViewItem>
 
-#include <QDebug>
-
 using namespace Zeal;
 
 void SeeAlsoDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option_, const QModelIndex &index) const
@@ -22,6 +20,7 @@ void SeeAlsoDelegate::paint(QPainter *painter, const QStyleOptionViewItem &optio
     bool isHeader = index.data(SearchModel::Roles::IsHeaderRole).toBool();
 
     if (isHeader) {
+        // Draw a header item.
         painter->save();
 
         painter->fillRect(option.rect, option.palette.window());
@@ -35,6 +34,7 @@ void SeeAlsoDelegate::paint(QPainter *painter, const QStyleOptionViewItem &optio
         return;
     }
 
+    // Draw a regular item.
     QApplication::style()->drawControl(QStyle::CE_ItemViewItem, &option, painter, option.widget);
 }
 

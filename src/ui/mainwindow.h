@@ -71,25 +71,34 @@ class SearchModel;
 class SettingsDialog;
 }
 
-// Represents per tab search state.
-// needs to contain [search input, search model, section model, url]
+/**
+ * @brief The SearchState struct
+ * Represents state of the UI per each tab.
+ */
 struct SearchState
 {
+    // Currently rendered web page.
     QWebPage *page;
-    // model representing sections (related links)
+
+    // Model representing sections (see also links).
     Zeal::SearchModel *sectionsList;
-    // model representing searched for items (search query results)
+    // Model representing searched for items (search query results).
     Zeal::SearchModel *zealSearch;
-    // query being searched for
+    // Query being searched for.
     QString searchQuery;
 
-    // list of selected indices
+    // List of selected items in the ToC/search list.
     QModelIndexList selections;
-    // list of expanded indices
+    // List of expanded items in the ToC.
     QModelIndexList expansions;
 
+    // Scroll position of the ToC/search.
     int scrollPosition;
+
+    // Scroll position of the see also list.
     int sectionsScroll;
+
+    // Zoom factor of the browser.
     int zoomFactor;
 };
 

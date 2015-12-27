@@ -99,10 +99,10 @@ MainWindow::MainWindow(Core::Application *app, QWidget *parent) :
     if (m_settings->showSystrayIcon)
         createTrayIcon();
 
-    // initialise key grabber
+    // Initialise key grabber.
     connect(m_globalShortcut, &QxtGlobalShortcut::activated, this, &MainWindow::toggleWindow);
 
-    // initialise ui
+    // Initialise ui.
     ui->setupUi(this);
 
     m_focusSearch = std::unique_ptr<QShortcut>(new QShortcut(QKeySequence(QStringLiteral("Ctrl+K")), this));
@@ -325,7 +325,13 @@ MainWindow::MainWindow(Core::Application *app, QWidget *parent) :
         m_tabBar->setCurrentIndex((m_tabBar->currentIndex() + 1) % m_tabBar->count());
     });
 
+    // For some reason actions with backtab key are not registered on windows.
+    // Create an alternative key sequence for windows.
+#ifdef Q_OS_WIN32
+    ui->actionPreviousTab->setShortcut(QKeySequence(Qt::SHIFT + Qt::CTRL + Qt::Key_Tab));
+#else
     ui->actionPreviousTab->setShortcut(QKeySequence::PreviousChild);
+#endif
     addAction(ui->actionPreviousTab);
     connect(ui->actionPreviousTab, &QAction::triggered, [this]() {
         m_tabBar->setCurrentIndex((m_tabBar->currentIndex() - 1 + m_tabBar->count()) % m_tabBar->count());
@@ -369,6 +375,11 @@ MainWindow::~MainWindow()
     }
 }
 
+/**
+ * @brief MainWindow::deferOpenDocset
+ * Defers to open a docset.
+ * @param index
+ */
 void MainWindow::deferOpenDocset(const QModelIndex &index)
 {
     /// PERF: Loading a web page makes the input sluggish.
@@ -379,6 +390,11 @@ void MainWindow::deferOpenDocset(const QModelIndex &index)
     m_deferOpenUrl->start(400);
 }
 
+/**
+ * @brief MainWindow::openDocset
+ * Opens a docset.
+ * @param index Clicked item to open.
+ */
 void MainWindow::openDocset(const QModelIndex &index)
 {
     const QVariant urlStr = index.sibling(index.row(), 1).data();
@@ -400,12 +416,24 @@ void MainWindow::openDocset(const QModelIndex &index)
         m_treeViewClicked = false;
 }
 
+/**
+ * @brief MainWindow::docsetName
+ * Returns the name of a docset.
+ * @param url
+ * @return
+ */
 QString MainWindow::docsetName(const QUrl &url) const
 {
     const QRegExp docsetRegex(QStringLiteral("/([^/]+)[.]docset"));
     return docsetRegex.indexIn(url.path()) != -1 ? docsetRegex.cap(1) : QString();
 }
 
+/**
+ * @brief MainWindow::docsetIcon
+ * Returns the icon for the particular docset.
+ * @param docsetName
+ * @return
+ */
 QIcon MainWindow::docsetIcon(const QString &docsetName) const
 {
     const Docset * const docset = m_application->docsetRegistry()->docset(docsetName);
@@ -423,6 +451,11 @@ void MainWindow::queryCompleted()
     deferOpenDocset(ui->treeView->currentIndex());
 }
 
+/**
+ * @brief MainWindow::goToTab
+ * Opens a tab with an `index`.
+ * @param index
+ */
 void MainWindow::goToTab(int index)
 {
     if (index == -1)
@@ -433,6 +466,12 @@ void MainWindow::goToTab(int index)
     reloadTabState();
 }
 
+/**
+ * @brief MainWindow::closeTab
+ * Closes a tab with a specific `index`.
+ * @param index Index of the tab to close.
+ * If index == -1 then closes the currently opened tab.
+ */
 void MainWindow::closeTab(int index)
 {
     if (index == -1)
@@ -457,6 +496,10 @@ void MainWindow::closeTab(int index)
         createTab();
 }
 
+/**
+ * @brief MainWindow::createTab
+ * Creates and opens a new tab.
+ */
 void MainWindow::createTab()
 {
     saveTabState();
@@ -480,10 +523,14 @@ void MainWindow::createTab()
     m_tabs.append(newTab);
 
 
-    const int index = m_tabBar->addTab(QStringLiteral("title"));
+    const int index = m_tabBar->addTab(QStringLiteral(""));
     m_tabBar->setCurrentIndex(index);
 }
 
+/**
+ * @brief MainWindow::displayTreeView
+ * Displays the tree view with main ToC/search results.
+ */
 void MainWindow::displayTreeView()
 {
     SearchState *searchState = currentSearchState();
@@ -500,6 +547,11 @@ void MainWindow::displayTreeView()
     }
 }
 
+/**
+ * @brief MainWindow::displaySections
+ * Displays the see also panel.
+ * If the page has no see also items hides the panel.
+ */
 void MainWindow::displaySections()
 {
     const bool hasResults = currentSearchState()->sectionsList->rowCount();
@@ -516,6 +568,10 @@ SearchState *MainWindow::currentSearchState()
     return m_tabs.at(m_tabBar->currentIndex());
 }
 
+/**
+ * @brief MainWindow::displayTabs
+ * Displays the tab menu and the tab bar.
+ */
 void MainWindow::displayTabs()
 {
     ui->menuTabs->clear();
@@ -563,6 +619,10 @@ void MainWindow::displayTabs()
     }
 }
 
+/**
+ * @brief MainWindow::reloadTabState
+ * Updates the UI to reflect the saved UI state of the currently selected tab.
+ */
 void MainWindow::reloadTabState()
 {
     SearchState *searchState = currentSearchState();
@@ -593,12 +653,20 @@ void MainWindow::reloadTabState()
     displayViewActions();
 }
 
+/**
+ * @brief MainWindow::scrollSearch
+ * Updates the scrollbar position of the ToC and see also views.
+ */
 void MainWindow::scrollSearch()
 {
     ui->treeView->verticalScrollBar()->setValue(m_searchState->scrollPosition);
     ui->sections->verticalScrollBar()->setValue(m_searchState->sectionsScroll);
 }
 
+/**
+ * @brief MainWindow::saveTabState
+ * Saves the UI state of the currently opened tab.
+ */
 void MainWindow::saveTabState()
 {
     if (!m_searchState)
@@ -616,7 +684,10 @@ void MainWindow::onSearchComplete()
     m_searchState->zealSearch->setResults(m_application->docsetRegistry()->queryResults());
 }
 
-// Sets up the search box autocompletions.
+/**
+ * @brief MainWindow::setupSearchBoxCompletions
+ * Sets up the search box autocompletions.
+ */
 void MainWindow::setupSearchBoxCompletions()
 {
     QStringList completions;
@@ -625,6 +696,12 @@ void MainWindow::setupSearchBoxCompletions()
     ui->lineEdit->setCompletions(completions);
 }
 
+/**
+ * @brief MainWindow::displayViewActions
+ * Enables toolbar icons.
+ * Displays the view menu (web view history).
+ * Displays tabs and tab bar.
+ */
 void MainWindow::displayViewActions()
 {
     ui->actionBack->setEnabled(ui->webView->canGoBack());
@@ -652,18 +729,33 @@ void MainWindow::displayViewActions()
     displayTabs();
 }
 
+/**
+ * @brief MainWindow::back
+ * Goes to the previous page in a browser.
+ */
 void MainWindow::back()
 {
     ui->webView->back();
     displayViewActions();
 }
 
+/**
+ * @brief MainWindow::forward
+ * Goes to the previous page in a browser.
+ */
 void MainWindow::forward()
 {
     ui->webView->forward();
     displayViewActions();
 }
 
+/**
+ * @brief MainWindow::addHistoryAction
+ * Adds a menu item with a history entry.
+ * @param history Web page history. Used to navigate the history.
+ * @param item Web page history item.
+ * @return An action that navigates to the history item.
+ */
 QAction *MainWindow::addHistoryAction(QWebHistory *history, const QWebHistoryItem &item)
 {
     const QIcon icon = docsetIcon(docsetName(item.url()));
@@ -783,6 +875,11 @@ void MainWindow::removeTrayIcon()
 #endif
 }
 
+/**
+ * @brief MainWindow::bringToFront
+ * Brings the window to front.
+ * @param query Query which it should execute.
+ */
 void MainWindow::bringToFront(const Zeal::SearchQuery &query)
 {
     show();
@@ -807,6 +904,10 @@ void MainWindow::changeEvent(QEvent *event)
     QMainWindow::changeEvent(event);
 }
 
+/**
+ * @brief MainWindow::closeEvent
+ * Closes the main window or hides it under a tray icon.
+ */
 void MainWindow::closeEvent(QCloseEvent *event)
 {
     m_settings->windowGeometry = saveGeometry();
@@ -816,6 +917,10 @@ void MainWindow::closeEvent(QCloseEvent *event)
     }
 }
 
+/**
+ * @brief MainWindow::eventFilter
+ * Applies an event filter in order to make middle trigger tab closing.
+ */
 bool MainWindow::eventFilter(QObject *object, QEvent *event)
 {
     if (object == m_tabBar.get() && event->type() == QEvent::MouseButtonRelease) {
@@ -832,7 +937,11 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
     return QMainWindow::eventFilter(object, event);
 }
 
-// Captures global events in order to pass them to the search bar.
+/**
+ * @brief MainWindow::keyPressEvent
+ * Captures global events in order to pass them to the search bar.
+ * @param keyEvent
+ */
 void MainWindow::keyPressEvent(QKeyEvent *keyEvent)
 {
     switch (keyEvent->key()) {
@@ -850,6 +959,12 @@ void MainWindow::keyPressEvent(QKeyEvent *keyEvent)
     }
 }
 
+/**
+ * @brief MainWindow::applySettings
+ * Updates the UI based to reflect user settings.
+ * Updates the global display shortcut.
+ * Updates the tray icon.
+ */
 void MainWindow::applySettings()
 {
     m_globalShortcut->setShortcut(m_settings->showShortcut);

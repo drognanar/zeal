@@ -9,7 +9,10 @@ namespace Zeal {
 class SearchResult;
 class Docset;
 
-// This class defines a method that reads related links from a .dashtoc file.
+/**
+ * @brief The DashToc class
+ * DashToc parses the .dashtoc file and provides the see also list.
+ */
 class DashToc
 {
 public:

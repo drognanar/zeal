@@ -31,6 +31,11 @@ class QStyleOptionViewItem;
 
 namespace Zeal {
 
+/**
+ * @brief The SearchItemDelegate class
+ * A delegate that defines how to render a search result.
+ * It provides support for highlighting of matched string.
+ */
 class SearchItemDelegate : public QStyledItemDelegate
 {
     Q_OBJECT

@@ -37,10 +37,17 @@ namespace Zeal {
 
 class SearchResult;
 
-/// A search strategy that uses a cache of previous searches.
-/// If a search was made for a prefix then then all results
-/// must appear in the cache. In this case instead of searching
-/// entire docset only cache is searched.
+/**
+ * @brief The CachingSearchStrategy class
+ * A search strategy that decorates another strategy and provides caching.
+ *
+ * It keeps a cache of the results of previous searches.
+ * If the prefix of a search query exists then the results and found
+ * by searching the cached results rather than the entire docset.
+ *
+ * This is because the results for a query prefix are a superset of
+ * results for a query.
+ */
 class CachingSearchStrategy : public DocsetSearchStrategy
 {
 public:
@@ -54,10 +61,13 @@ private:
     QList<SearchResult> searchWithCache(const QString &query, const QString &prefix);
     QList<SearchResult> searchWithoutCache(const QString &query, CancellationToken token);
 
+    // Maximum size of the cache.
     const static int CacheSize = 10;
-
-    std::unique_ptr<DocsetSearchStrategy> m_search;
     QCache<QString, QList<SearchResult>> m_cache;
+
+    // A decorated search strategy.
+    std::unique_ptr<DocsetSearchStrategy> m_search;
+
 };
 
 }

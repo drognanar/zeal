@@ -24,6 +24,7 @@
 #ifndef SEARCHABLEWEBVIEW_H
 #define SEARCHABLEWEBVIEW_H
 
+#include <memory>
 #include <QWidget>
 
 #ifdef USE_WEBENGINE
@@ -35,11 +36,16 @@ class QWebPage;
 
 class WebView;
 
+/**
+ * @brief The SearchableWebView class
+ * A web view that has an inbuilt search field.
+ */
 class SearchableWebView : public QWidget
 {
     Q_OBJECT
 public:
     explicit SearchableWebView(QWidget *parent = nullptr);
+    ~SearchableWebView();
 
     void load(const QUrl &url);
     void focus();
@@ -74,8 +80,8 @@ private:
     void findNext(const QString &text, bool backward = false);
     void moveLineEdit();
 
-    QLineEdit *m_searchLineEdit = nullptr;
-    WebView *m_webView = nullptr;
+    std::unique_ptr<QLineEdit> m_searchLineEdit;
+    std::unique_ptr<WebView> m_webView;
 };
 
 #endif // SEARCHABLEWEBVIEW_H

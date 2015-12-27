@@ -35,6 +35,10 @@ class QThread;
 
 namespace Zeal {
 
+/**
+ * @brief The DocsetRegistry class
+ * A docset registry manages all docsets. It is used to perform queries.
+ */
 class DocsetRegistry : public QObject
 {
     Q_OBJECT

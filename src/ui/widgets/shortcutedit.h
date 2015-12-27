@@ -26,6 +26,11 @@
 
 #include <QLineEdit>
 
+/**
+ * @brief The ShortcutEdit class
+ * A shortcut edit is a text field used that stores the typed keys
+ * as a keyboard shortcut.
+ */
 class ShortcutEdit : public QLineEdit
 {
 public:

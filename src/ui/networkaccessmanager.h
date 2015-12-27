@@ -28,6 +28,12 @@
 
 namespace Zeal {
 
+/**
+ * @brief The NetworkAccessManager class
+ * A decorator that is used to get the relevant response in the Zeal browser.
+ * It blocks all external links as they can cause Zeal to hang.
+ * It redirects some file paths on WIN32 which have a different naming convention.
+ */
 class NetworkAccessManager : public QNetworkAccessManager
 {
     Q_OBJECT

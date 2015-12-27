@@ -27,7 +27,7 @@ using namespace Zeal;
 
 CancellationToken::CancellationToken()
 {
-    m_cancelled = QSharedPointer<bool>(new bool(false));
+    m_cancelled = std::shared_ptr<bool>(new bool(false));
 }
 
 void CancellationToken::cancel()

@@ -33,7 +33,10 @@ namespace Zeal {
 
 class SearchResult;
 
-/// This class contains search related methods for docsets.
+/**
+ * @brief The DocsetSearchStrategy class
+ * A class that defines a strategy to find results for a search query.
+ */
 class DocsetSearchStrategy
 {
 public:

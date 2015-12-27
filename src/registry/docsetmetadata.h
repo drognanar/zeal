@@ -35,6 +35,11 @@ namespace Zeal {
 
 /// TODO: Use QUrl
 
+/**
+ * @brief The DocsetMetadata class
+ * DocsetMetadata contains metadata about a docset.
+ * Used when docset downloads.
+ */
 class DocsetMetadata
 {
 public:

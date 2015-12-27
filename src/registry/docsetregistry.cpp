@@ -27,7 +27,6 @@
 
 #include <functional>
 #include <QtConcurrent/QtConcurrent>
-#include <QDebug>
 #include <QDir>
 #include <QSqlQuery>
 #include <QThread>
@@ -38,7 +37,7 @@ using namespace Zeal;
 
 DocsetRegistry::DocsetRegistry(QObject *parent) :
     QObject(parent),
-    m_thread(std::unique_ptr<QThread>(new QThread(this)))
+    m_thread(new QThread(this))
 {
     /// FIXME: Only search should be performed in a separate thread
     moveToThread(m_thread.get());

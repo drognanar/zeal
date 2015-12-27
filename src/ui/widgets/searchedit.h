@@ -33,6 +33,10 @@ class QLabel;
 class QResizeEvent;
 class QTreeView;
 
+/**
+ * @brief The SearchEdit class
+ * A searchedit is a text field in which user enters the search query.
+ */
 class SearchEdit : public QLineEdit
 {
     Q_OBJECT

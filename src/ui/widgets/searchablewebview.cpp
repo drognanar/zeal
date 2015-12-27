@@ -48,24 +48,28 @@ SearchableWebView::SearchableWebView(QWidget *parent) :
 
     m_searchLineEdit->hide();
     m_searchLineEdit->installEventFilter(this);
-    connect(m_searchLineEdit, &QLineEdit::textChanged, this, &SearchableWebView::find);
+    connect(m_searchLineEdit.get(), &QLineEdit::textChanged, this, &SearchableWebView::find);
 
     QShortcut *shortcut = new QShortcut(QKeySequence::Find, this);
     connect(shortcut, &QShortcut::activated, this, &SearchableWebView::showSearch);
 
-    connect(m_webView, &QWebView::loadFinished, [&](bool ok) {
+    connect(m_webView.get(), &QWebView::loadFinished, [&](bool ok) {
         Q_UNUSED(ok)
         moveLineEdit();
     });
 
-    connect(m_webView, &QWebView::urlChanged, this, &SearchableWebView::urlChanged);
-    connect(m_webView, &QWebView::titleChanged, this, &SearchableWebView::titleChanged);
+    connect(m_webView.get(), &QWebView::urlChanged, this, &SearchableWebView::urlChanged);
+    connect(m_webView.get(), &QWebView::titleChanged, this, &SearchableWebView::titleChanged);
 #ifdef USE_WEBENGINE
     // not implemented?
     // connect(m_webView->page(), &QWebPage::linkClicked, this, &SearchableWebView::linkClicked);
 #else
-    connect(m_webView, &QWebView::linkClicked, this, &SearchableWebView::linkClicked);
+    connect(m_webView.get(), &QWebView::linkClicked, this, &SearchableWebView::linkClicked);
 #endif
+}
+
+SearchableWebView::~SearchableWebView()
+{
 }
 
 void SearchableWebView::setPage(QWebPage *page)
@@ -90,7 +94,7 @@ void SearchableWebView::setZoomFactor(int value)
 
 bool SearchableWebView::eventFilter(QObject *object, QEvent *event)
 {
-    if (object == m_searchLineEdit && event->type() == QEvent::KeyPress) {
+    if (object == m_searchLineEdit.get() && event->type() == QEvent::KeyPress) {
         QKeyEvent *keyEvent = reinterpret_cast<QKeyEvent *>(event);
         switch (keyEvent->key()) {
         case Qt::Key_Escape:

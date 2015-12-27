@@ -30,6 +30,10 @@ namespace Zeal {
 
 class Docset;
 
+/**
+ * @brief The SearchResult struct
+ * Contains a single item of the search results/see also list.
+ */
 struct SearchResult
 {
     QString name;
