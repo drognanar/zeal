@@ -62,7 +62,7 @@ protected:
     void resizeEvent(QResizeEvent *event) override;
 
 private slots:
-    void showCompletions(const QString &text);
+    void displayCompletions(const QString &searchEditText);
 
 private:
     QString currentCompletion(const QString &text) const;

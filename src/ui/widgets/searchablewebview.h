@@ -33,6 +33,7 @@
 
 class QLineEdit;
 class QWebPage;
+class QShortcut;
 
 class WebView;
 
@@ -81,6 +82,7 @@ private:
     void moveLineEdit();
 
     std::unique_ptr<QLineEdit> m_searchLineEdit;
+    std::unique_ptr<QShortcut> m_searchShortcut;
     std::unique_ptr<WebView> m_webView;
 };
 

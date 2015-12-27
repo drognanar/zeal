@@ -23,6 +23,7 @@
 #ifndef APPLICATION_H
 #define APPLICATION_H
 
+#include <memory>
 #include <QObject>
 
 class QLocalServer;
@@ -47,7 +48,6 @@ class Application : public QObject
 {
     Q_OBJECT
 public:
-    explicit Application(QObject *parent = nullptr);
     explicit Application(const SearchQuery &query, QObject *parent = nullptr);
     ~Application() override;
 
@@ -79,17 +79,17 @@ private:
 
     static Application *m_instance;
 
-    Settings *m_settings = nullptr;
+    std::unique_ptr<Settings> m_settings;
 
-    QLocalServer *m_localServer = nullptr;
-    QNetworkAccessManager *m_networkManager = nullptr;
+    std::unique_ptr<QLocalServer> m_localServer;
+    std::unique_ptr<QNetworkAccessManager> m_networkManager;
 
-    QThread *m_extractorThread = nullptr;
-    Extractor *m_extractor = nullptr;
+    std::unique_ptr<QThread> m_extractorThread;
+    std::unique_ptr<Extractor> m_extractor;
 
-    DocsetRegistry *m_docsetRegistry = nullptr;
+    std::unique_ptr<DocsetRegistry> m_docsetRegistry;
 
-    MainWindow *m_mainWindow = nullptr;
+    std::unique_ptr<MainWindow> m_mainWindow;
 };
 
 } // namespace Core

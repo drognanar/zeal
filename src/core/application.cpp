@@ -52,31 +52,25 @@ const char ReleasesApiUrl[] = "http://api.zealdocs.org/v1/releases";
 
 Application *Application::m_instance = nullptr;
 
-Application::Application(QObject *parent) :
-    Application(SearchQuery(), parent)
-{
-}
-
 Application::Application(const SearchQuery &query, QObject *parent) :
-    QObject(parent)
+    QObject(parent),
+    m_settings(new Settings(this)),
+    m_localServer(new QLocalServer(this)),
+    m_networkManager(new QNetworkAccessManager(this)),
+    m_extractorThread(new QThread(this)),
+    m_extractor(new Extractor()),
+    m_docsetRegistry(new DocsetRegistry())
 {
     // Ensure only one instance of Application
     Q_ASSERT(!m_instance);
     m_instance = this;
 
-    m_settings = new Settings(this);
-    m_localServer = new QLocalServer(this);
-    m_networkManager = new QNetworkAccessManager(this);
-    m_extractorThread = new QThread(this);
-    m_extractor = new Extractor();
-
-    m_docsetRegistry = new DocsetRegistry();
     m_docsetRegistry->init(m_settings->docsetPath);
 
-    m_mainWindow = new MainWindow(this);
+    m_mainWindow = std::unique_ptr<MainWindow>(new MainWindow(this));
 
     // Server for detecting already running instances
-    connect(m_localServer, &QLocalServer::newConnection, [this]() {
+    connect(m_localServer.get(), &QLocalServer::newConnection, [this]() {
         QLocalSocket *connection = m_localServer->nextPendingConnection();
         // Wait a little while the other side writes the bytes
         connection->waitForReadyRead();
@@ -94,13 +88,13 @@ Application::Application(const SearchQuery &query, QObject *parent) :
     m_localServer->listen(LocalServerName);
 
     // Extractor setup
-    m_extractor->moveToThread(m_extractorThread);
+    m_extractor->moveToThread(m_extractorThread.get());
     m_extractorThread->start();
-    connect(m_extractor, &Extractor::completed, this, &Application::extractionCompleted);
-    connect(m_extractor, &Extractor::error, this, &Application::extractionError);
-    connect(m_extractor, &Extractor::progress, this, &Application::extractionProgress);
+    connect(m_extractor.get(), &Extractor::completed, this, &Application::extractionCompleted);
+    connect(m_extractor.get(), &Extractor::error, this, &Application::extractionError);
+    connect(m_extractor.get(), &Extractor::progress, this, &Application::extractionProgress);
 
-    connect(m_settings, &Settings::updated, this, &Application::applySettings);
+    connect(m_settings.get(), &Settings::updated, this, &Application::applySettings);
     applySettings();
 
     if (!query.isEmpty())
@@ -113,9 +107,6 @@ Application::~Application()
 {
     m_extractorThread->quit();
     m_extractorThread->wait();
-    delete m_extractor;
-    delete m_mainWindow;
-    delete m_docsetRegistry;
 }
 
 QString Application::localServerName()
@@ -125,22 +116,22 @@ QString Application::localServerName()
 
 QNetworkAccessManager *Application::networkManager() const
 {
-    return m_networkManager;
+    return m_networkManager.get();
 }
 
 Settings *Application::settings() const
 {
-    return m_settings;
+    return m_settings.get();
 }
 
 DocsetRegistry *Application::docsetRegistry()
 {
-    return m_instance->m_docsetRegistry;
+    return m_instance->m_docsetRegistry.get();
 }
 
 void Application::extract(const QString &filePath, const QString &destination, const QString &root)
 {
-    QMetaObject::invokeMethod(m_extractor, "extract", Qt::QueuedConnection,
+    QMetaObject::invokeMethod(m_extractor.get(), "extract", Qt::QueuedConnection,
                               Q_ARG(QString, filePath), Q_ARG(QString, destination),
                               Q_ARG(QString, root));
 }

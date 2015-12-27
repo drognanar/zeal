@@ -30,8 +30,8 @@
 using namespace Zeal;
 
 CachingSearchStrategy::CachingSearchStrategy(std::unique_ptr<DocsetSearchStrategy> strategy)
-    : m_search(std::move(strategy)),
-      m_cache(CachingSearchStrategy::CacheSize)
+    : m_cache(CachingSearchStrategy::CacheSize),
+      m_search(std::move(strategy))
 {
 }
 

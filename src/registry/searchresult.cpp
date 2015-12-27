@@ -47,5 +47,5 @@ SearchResult SearchResult::withScore(int newScore) const
 {
     return SearchResult({name, parentName, type,
                          docset, path, query,
-                         newScore});
+                         newScore, isHeader});
 }

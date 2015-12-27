@@ -42,6 +42,7 @@
 SearchableWebView::SearchableWebView(QWidget *parent) :
     QWidget(parent),
     m_searchLineEdit(new QLineEdit(this)),
+    m_searchShortcut(new QShortcut(QKeySequence::Find, this)),
     m_webView(new WebView(this))
 {
     m_webView->setAttribute(Qt::WA_AcceptTouchEvents, false);
@@ -50,8 +51,7 @@ SearchableWebView::SearchableWebView(QWidget *parent) :
     m_searchLineEdit->installEventFilter(this);
     connect(m_searchLineEdit.get(), &QLineEdit::textChanged, this, &SearchableWebView::find);
 
-    QShortcut *shortcut = new QShortcut(QKeySequence::Find, this);
-    connect(shortcut, &QShortcut::activated, this, &SearchableWebView::showSearch);
+    connect(m_searchShortcut.get(), &QShortcut::activated, this, &SearchableWebView::showSearch);
 
     connect(m_webView.get(), &QWebView::loadFinished, [&](bool ok) {
         Q_UNUSED(ok)

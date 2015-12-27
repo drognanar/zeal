@@ -34,6 +34,7 @@ const char IoniconsSearchIcon[] = "\uf2f5";
 
 SearchEdit::SearchEdit(QWidget *parent) :
     QLineEdit(parent),
+    m_prefixCompleter(new QCompleter(this)),
     m_completionLabel(new QLabel(this)),
     m_searchLabel(new QLabel(this))
 {
@@ -43,13 +44,17 @@ SearchEdit::SearchEdit(QWidget *parent) :
 
     displaySearchIcon();
 
-    connect(this, &SearchEdit::textChanged, this, &SearchEdit::showCompletions);
+    connect(this, &SearchEdit::textChanged, this, &SearchEdit::displayCompletions);
 }
 
 SearchEdit::~SearchEdit()
 {
 }
 
+/**
+ * @brief SearchEdit::displaySearchIcon
+ * Displays the search icon for the UI.
+ */
 void SearchEdit::displaySearchIcon()
 {
     QStyleOptionFrameV2 option;
@@ -86,7 +91,11 @@ void SearchEdit::setTreeView(QTreeView *view)
     m_focusing = false;
 }
 
-// Makes the line edit use autocompletions.
+/**
+ * @brief SearchEdit::setCompletions
+ * Sets up the prefix autocompleter.
+ * @param completions The list of completions to use.
+ */
 void SearchEdit::setCompletions(const QStringList &completions)
 {
     m_prefixCompleter = std::unique_ptr<QCompleter>(new QCompleter(completions, this));
@@ -95,12 +104,30 @@ void SearchEdit::setCompletions(const QStringList &completions)
     m_prefixCompleter->setWidget(this);
 }
 
-// Clear input with consideration to docset filters
+/**
+ * @brief SearchEdit::clearQuery
+ * Clear input with consideration to docset filters.
+ * Keeps the docset filter for the first Escape press.
+ *
+ * Cases:
+ * 1. query|      - Cleared to |
+ * 2. ruby:|      - Cleared to |
+ * 2. ruby:query| - Cleared to ruby:|
+ */
 void SearchEdit::clearQuery()
 {
     setText(text().left(queryStart()));
 }
 
+/**
+ * @brief SearchEdit::selectQuery
+ * Selects the query with consideration to docset filters.
+ *
+ * Cases:
+ * 1. query|      - Selects |query|
+ * 2. ruby:|      - Selects |ruby:|
+ * 3. ruby:query| - Selects ruby:|query|
+ */
 void SearchEdit::selectQuery()
 {
     setSelection(queryStart(), text().size());
@@ -178,7 +205,14 @@ void SearchEdit::mousePressEvent(QMouseEvent *event)
     m_focusing = false;
 }
 
-void SearchEdit::showCompletions(const QString &newValue)
+/**
+ * @brief SearchEdit::displayCompletions
+ * Displays the most relevant completion inline of the search edit.
+ * Displaying of completion should not affect the `text()` value.
+ *
+ * @param searchEditText New text of the SearchEdit view.
+ */
+void SearchEdit::displayCompletions(const QString &searchEditText)
 {
     QStyleOptionFrameV2 option;
     initStyleOption(&option);
@@ -186,15 +220,14 @@ void SearchEdit::showCompletions(const QString &newValue)
     QMargins margins = textMargins();
 
     QRect rect = style()->subElementRect(QStyle::SE_LineEditContents, &option, this);
-    const int textWidth = fontMetrics().width(newValue);
+    const int textWidth = fontMetrics().width(searchEditText);
 
     int minLB = qMax(0, -fontMetrics().minLeftBearing());
     rect.setX(rect.x() + margins.left() + 2 + minLB);
 
-    if (m_prefixCompleter)
-        m_prefixCompleter->setCompletionPrefix(text());
+    m_prefixCompleter->setCompletionPrefix(text());
 
-    const QString completed = currentCompletion(newValue).mid(newValue.size());
+    const QString completed = currentCompletion(searchEditText).mid(searchEditText.size());
     const QSize labelSize(fontMetrics().width(completed), size().height());
 
     m_completionLabel->setMinimumSize(labelSize);
@@ -202,6 +235,11 @@ void SearchEdit::showCompletions(const QString &newValue)
     m_completionLabel->setText(completed);
 }
 
+/**
+ * @brief SearchEdit::currentCompletion
+ * The most relevant completion for a particular text.
+ * @param text Text to complete.
+ */
 QString SearchEdit::currentCompletion(const QString &text) const
 {
     if (text.isEmpty() || !m_prefixCompleter)
@@ -210,9 +248,16 @@ QString SearchEdit::currentCompletion(const QString &text) const
     return m_prefixCompleter->currentCompletion();
 }
 
+/**
+ * @brief SearchEdit::queryStart Returns index at which the query starts.
+ *
+ * Cases:
+ * 1. query|      - Returns 0
+ * 2. ruby:|      - Returns 0
+ * 3. ruby:query| - Returns 5
+ */
 int SearchEdit::queryStart() const
 {
     const Zeal::SearchQuery currentQuery = Zeal::SearchQuery::fromString(text());
-    // Keep the filter for the first Escape press
     return currentQuery.query().isEmpty() ? 0 : currentQuery.keywordPrefixSize();
 }
