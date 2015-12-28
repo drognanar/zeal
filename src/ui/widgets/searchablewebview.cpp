@@ -29,6 +29,7 @@
 #include <QShortcut>
 #include <QStyle>
 #include <QResizeEvent>
+#include <QUrl>
 
 #ifdef USE_WEBENGINE
 #include <QWebEngineHistory>
@@ -60,6 +61,7 @@ SearchableWebView::SearchableWebView(QWidget *parent) :
 
     connect(m_webView.get(), &QWebView::urlChanged, this, &SearchableWebView::urlChanged);
     connect(m_webView.get(), &QWebView::titleChanged, this, &SearchableWebView::titleChanged);
+    connect(m_webView.get(), &QWebView::loadFinished, this, &SearchableWebView::loadFinished);
 #ifdef USE_WEBENGINE
     // not implemented?
     // connect(m_webView->page(), &QWebPage::linkClicked, this, &SearchableWebView::linkClicked);
@@ -120,6 +122,24 @@ void SearchableWebView::load(const QUrl &url)
 void SearchableWebView::focus()
 {
     m_webView->setFocus();
+}
+
+QUrl SearchableWebView::currentUrl()
+{
+#if USE_WEBENGINE
+    return page()->url();
+#else
+    return page()->currentFrame()->url();
+#endif
+}
+
+QString SearchableWebView::currentTitle()
+{
+#if USE_WEBENGINE
+    return page()->title();
+#else
+    return page()->currentFrame()->title();
+#endif
 }
 
 QWebPage *SearchableWebView::page() const

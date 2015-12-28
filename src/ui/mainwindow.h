@@ -136,6 +136,7 @@ private slots:
 
 private:
     void displayViewActions();
+    void displayTitle();
     void displayTreeView();
     void displaySections();
     void setupSearchBoxCompletions();

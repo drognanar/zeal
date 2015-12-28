@@ -225,6 +225,10 @@ MainWindow::MainWindow(Core::Application *app, QWidget *parent) :
 
         displayViewActions();
     });
+    connect(ui->webView, &SearchableWebView::loadFinished, [this](bool ok) {
+        if (ok)
+            displayTitle();
+    });
 
     connect(ui->webView, &SearchableWebView::titleChanged, [this](const QString &) {
         displayViewActions();
@@ -708,7 +712,7 @@ void MainWindow::displayViewActions()
     ui->backButton->setEnabled(ui->webView->canGoBack());
     ui->actionForward->setEnabled(ui->webView->canGoForward());
     ui->forwardButton->setEnabled(ui->webView->canGoForward());
-    ui->openUrlButton->setEnabled(ui->webView->page()->currentFrame()->url().scheme() != "qrc");
+    ui->openUrlButton->setEnabled(ui->webView->currentUrl().scheme() != "qrc");
 
     ui->menuView->clear();
     ui->menuView->addAction(ui->actionBack);
@@ -727,6 +731,15 @@ void MainWindow::displayViewActions()
         m_forwardMenu->addAction(addHistoryAction(history, item));
 
     displayTabs();
+}
+
+/**
+ * @brief MainWindow::displayTitle
+ * Displays the window title.
+ */
+void MainWindow::displayTitle()
+{
+    setWindowTitle(QString("Zeal - %1").arg(ui->webView->currentTitle()));
 }
 
 /**

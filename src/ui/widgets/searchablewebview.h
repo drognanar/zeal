@@ -32,6 +32,7 @@
 #endif
 
 class QLineEdit;
+class QUrl;
 class QWebPage;
 class QShortcut;
 
@@ -61,10 +62,14 @@ public:
 
     bool eventFilter(QObject *object, QEvent *event) override;
 
+    QUrl currentUrl();
+    QString currentTitle();
+
 signals:
     void urlChanged(const QUrl &url);
     void titleChanged(const QString &title);
     void linkClicked(const QUrl &url);
+    void loadFinished(bool ok);
 
 public slots:
     void back();
