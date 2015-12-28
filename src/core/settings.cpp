@@ -67,7 +67,6 @@ Settings::Settings(QObject *parent) :
 
 Settings::~Settings()
 {
-    save();
 }
 
 void Settings::load()

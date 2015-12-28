@@ -107,6 +107,7 @@ Application::~Application()
 {
     m_extractorThread->quit();
     m_extractorThread->wait();
+    m_settings->save();
 }
 
 QString Application::localServerName()
