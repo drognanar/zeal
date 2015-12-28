@@ -52,14 +52,14 @@ class CachingSearchStrategy : public DocsetSearchStrategy
 {
 public:
     CachingSearchStrategy(std::unique_ptr<DocsetSearchStrategy> strategy);
-    QList<SearchResult> search(const QString &query, CancellationToken token) override;
-    bool validResult(const QString &query, SearchResult previousResult,
+    QList<SearchResult> search(const SearchQuery &searchQuery, CancellationToken token) override;
+    bool validResult(const SearchQuery &searchQuery, SearchResult previousResult,
                      SearchResult &result)override;
 
 private:
-    QString getCacheEntry(const QString &query) const;
-    QList<SearchResult> searchWithCache(const QString &query, const QString &prefix);
-    QList<SearchResult> searchWithoutCache(const QString &query, CancellationToken token);
+    QString getCacheEntry(const SearchQuery &searchQuery) const;
+    QList<SearchResult> searchWithCache(const SearchQuery &searchQuery, const QString &prefix);
+    QList<SearchResult> searchWithoutCache(const SearchQuery &searchQuery, CancellationToken token);
 
     // Maximum size of the cache.
     const static int CacheSize = 10;

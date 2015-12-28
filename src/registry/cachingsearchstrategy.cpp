@@ -35,29 +35,29 @@ CachingSearchStrategy::CachingSearchStrategy(std::unique_ptr<DocsetSearchStrateg
 {
 }
 
-QList<SearchResult> CachingSearchStrategy::search(const QString &query, CancellationToken token)
+QList<SearchResult> CachingSearchStrategy::search(const SearchQuery &searchQuery, CancellationToken token)
 {
-    QString candidate = getCacheEntry(query);
+    QString candidate = getCacheEntry(searchQuery);
     if (!candidate.isEmpty()) {
-        return searchWithCache(query, candidate);
+        return searchWithCache(searchQuery, candidate);
     } else {
-        return searchWithoutCache(query, token);
+        return searchWithoutCache(searchQuery, token);
     }
 }
 
-bool CachingSearchStrategy::validResult(
-        const QString &query, SearchResult previousResult,
+bool CachingSearchStrategy::validResult(const SearchQuery &searchQuery, SearchResult previousResult,
         SearchResult &result)
 {
-    return m_search->validResult(query, previousResult, result);
+    return m_search->validResult(searchQuery, previousResult, result);
 }
 
-QString CachingSearchStrategy::getCacheEntry(const QString &query) const
+QString CachingSearchStrategy::getCacheEntry(const SearchQuery &searchQuery) const
 {
-    const SearchQuery searchQuery = SearchQuery::fromString(query);
-
-    for (int i = searchQuery.query().size(); i > 0; i--) {
-        QString candidate = searchQuery.query().mid(0, i);
+    // TODO: do not use the `fromString` in this method.
+    // TODO: remove as many `fromString` uses as possible.
+    // TODO: then make the registry process keywords globally.
+    for (int i = searchQuery.toString().size(); i > 0; i--) {
+        QString candidate = searchQuery.toString().mid(0, i);
 
         /// Use the cache only if the cache entry contains all results.
         /// Also handle cases where prefix is a docset query `std:`.
@@ -69,7 +69,7 @@ QString CachingSearchStrategy::getCacheEntry(const QString &query) const
     return QString();
 }
 
-QList<SearchResult> CachingSearchStrategy::searchWithCache(const QString &query, const QString &prefix)
+QList<SearchResult> CachingSearchStrategy::searchWithCache(const SearchQuery &searchQuery, const QString &prefix)
 {
     QList<SearchResult> *prefixResults = m_cache[prefix];
     QList<SearchResult> results;
@@ -77,20 +77,20 @@ QList<SearchResult> CachingSearchStrategy::searchWithCache(const QString &query,
     while (prefixResultsIterator.hasNext()) {
         SearchResult previousResult = prefixResultsIterator.next();
         SearchResult result;
-        if (validResult(query, previousResult, result))
+        if (validResult(searchQuery, previousResult, result))
             results.append(result);
     }
 
-    m_cache.insert(query, new QList<SearchResult>(results));
+    m_cache.insert(searchQuery.toString(), new QList<SearchResult>(results));
     return results;
 }
 
-QList<SearchResult> CachingSearchStrategy::searchWithoutCache(const QString &query, CancellationToken token)
+QList<SearchResult> CachingSearchStrategy::searchWithoutCache(const SearchQuery &searchQuery, CancellationToken token)
 {
-    QList<SearchResult> results = m_search->search(query, token);
+    QList<SearchResult> results = m_search->search(searchQuery, token);
 
     /// Only cache the results if they are not partial.
     if (!token.isCancelled())
-        m_cache.insert(query, new QList<SearchResult>(results));
+        m_cache.insert(searchQuery.toString(), new QList<SearchResult>(results));
     return results;
 }

@@ -23,6 +23,7 @@
 
 #include "docsetregistry.h"
 
+#include "searchquery.h"
 #include "searchresult.h"
 
 #include <functional>
@@ -139,9 +140,10 @@ void MergeQueryResults(QList<SearchResult> &finalResult, const QList<SearchResul
 
 void DocsetRegistry::_runQueryAsync(const QString &query, const CancellationToken token)
 {
+    SearchQuery searchQuery = SearchQuery::fromString(query);
     QFuture<QList<SearchResult>> queryResultsFuture = QtConcurrent::mappedReduced(
                 docsets(),
-                std::bind(&Docset::search, std::placeholders::_1, query, token),
+                std::bind(&Docset::search, std::placeholders::_1, searchQuery, token),
                 &MergeQueryResults);
     QList<SearchResult> queryResults = queryResultsFuture.result();
     std::sort(queryResults.begin(), queryResults.end());

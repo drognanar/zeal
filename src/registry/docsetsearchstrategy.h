@@ -26,11 +26,11 @@
 
 #include "cancellationtoken.h"
 
-#include <QString>
 #include <QList>
 
 namespace Zeal {
 
+class SearchQuery;
 class SearchResult;
 
 /**
@@ -40,10 +40,10 @@ class SearchResult;
 class DocsetSearchStrategy
 {
 public:
-    virtual QList<SearchResult> search(const QString &query, CancellationToken token) = 0;
+    virtual QList<SearchResult> search(const SearchQuery &searchQuery, CancellationToken token) = 0;
 
     /// Used to filter out cached results.
-    virtual bool validResult(const QString &query, SearchResult previousResult,
+    virtual bool validResult(const SearchQuery &searchQuery, SearchResult previousResult,
                              SearchResult &result) = 0;
 };
 

@@ -66,8 +66,8 @@ class DashSearchStrategy : public DocsetSearchStrategy
 {
 public:
     explicit DashSearchStrategy(Docset *docset);
-    QList<SearchResult> search(const QString &query, CancellationToken token) override;
-    bool validResult(const QString &query, SearchResult previousResult,
+    QList<SearchResult> search(const SearchQuery &searchQuery, CancellationToken token) override;
+    bool validResult(const SearchQuery &searchQuery, SearchResult previousResult,
                      SearchResult &result) override;
 
 private:
@@ -81,12 +81,11 @@ DashSearchStrategy::DashSearchStrategy(Docset *docset)
 {
 }
 
-QList<SearchResult> DashSearchStrategy::search(const QString &rawQuery, CancellationToken token)
+QList<SearchResult> DashSearchStrategy::search(const SearchQuery &searchQuery, CancellationToken token)
 {
     QList<SearchResult> results;
     int resultCount = 0;
 
-    const SearchQuery searchQuery = SearchQuery::fromString(rawQuery);
     const QString sanitizedQuery = searchQuery.sanitizedQuery();
 
     if (searchQuery.hasKeywords() && !searchQuery.hasKeywords(m_docset->keywords()))
@@ -141,10 +140,9 @@ QList<SearchResult> DashSearchStrategy::search(const QString &rawQuery, Cancella
 }
 
 bool DashSearchStrategy::validResult(
-        const QString &query, SearchResult previousResult,
+        const SearchQuery &searchQuery, SearchResult previousResult,
         SearchResult &result)
 {
-    SearchQuery searchQuery = SearchQuery::fromString(query);
     bool docsetEnabled = !searchQuery.hasKeywords() || searchQuery.hasKeywords(m_docset->keywords());
 
     if (previousResult.name.contains(searchQuery.query(), Qt::CaseInsensitive)
@@ -364,9 +362,9 @@ int Docset::scoreSubstringResult(const SearchQuery &query, const QString result)
     return std::max(1, score);
 }
 
-QList<SearchResult> Docset::search(const QString &rawQuery, CancellationToken token) const
+QList<SearchResult> Docset::search(const SearchQuery &searchQuery, CancellationToken token) const
 {
-    return m_searchStrategy->search(rawQuery, token);
+    return m_searchStrategy->search(searchQuery, token);
 }
 
 QList<SearchResult> Docset::relatedLinks(const QUrl &url) const
