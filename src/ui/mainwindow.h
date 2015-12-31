@@ -144,7 +144,7 @@ private:
     void displayTabs();
     SearchState *currentSearchState();
     QString docsetName(const QUrl &url) const;
-    QIcon docsetIcon(const QString &docsetName) const;
+    QIcon docsetIcon(const QUrl &url) const;
     QAction *addHistoryAction(QWebHistory *history, const QWebHistoryItem &item);
     void createTrayIcon();
     void removeTrayIcon();

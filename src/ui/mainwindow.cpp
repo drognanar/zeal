@@ -34,6 +34,7 @@
 #include "registry/docsetregistry.h"
 #include "registry/listmodel.h"
 #include "registry/searchmodel.h"
+#include "ui/icons.h"
 
 #include <QAbstractEventDispatcher>
 #include <QCloseEvent>
@@ -217,7 +218,7 @@ MainWindow::MainWindow(Core::Application *app, QWidget *parent) :
 
     connect(ui->webView, &SearchableWebView::urlChanged, [this](const QUrl &url) {
         const QString name = docsetName(url);
-        m_tabBar->setTabIcon(m_tabBar->currentIndex(), docsetIcon(name));
+        m_tabBar->setTabIcon(m_tabBar->currentIndex(), docsetIcon(url));
 
         Docset *docset = m_application->docsetRegistry()->docset(name);
         if (docset)
@@ -439,12 +440,18 @@ QString MainWindow::docsetName(const QUrl &url) const
  * @param docsetName
  * @return
  */
-QIcon MainWindow::docsetIcon(const QString &docsetName) const
+QIcon MainWindow::docsetIcon(const QUrl &url) const
 {
-    const Docset * const docset = m_application->docsetRegistry()->docset(docsetName);
-    if (!docset)
+    QString name = docsetName(url);
+    const Docset * const docset = m_application->docsetRegistry()->docset(name);
+    if (docset)
+        return docset->icon();
+    else if (url.scheme() == "qrc")
         return QIcon(QStringLiteral(":/icons/logo/icon.png"));
-    return docset->icon();
+    else if (url.scheme() == "file")
+        return Icons::getIcon(Icons::DocumentText);
+    else
+        return Icons::getIcon(Icons::WorldOutline);
 }
 
 void MainWindow::queryCompleted()
@@ -772,7 +779,7 @@ void MainWindow::forward()
  */
 QAction *MainWindow::addHistoryAction(QWebHistory *history, const QWebHistoryItem &item)
 {
-    const QIcon icon = docsetIcon(docsetName(item.url()));
+    const QIcon icon = docsetIcon(item.url());
     QAction *backAction = new QAction(icon, item.title(), ui->menuView);
     ui->menuView->addAction(backAction);
     connect(backAction, &QAction::triggered, [=](bool) {

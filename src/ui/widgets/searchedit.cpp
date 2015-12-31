@@ -24,13 +24,12 @@
 #include "searchedit.h"
 
 #include "registry/searchquery.h"
+#include "ui/icons.h"
 
 #include <QCompleter>
 #include <QKeyEvent>
 #include <QLabel>
 #include <QTreeView>
-
-const char IoniconsSearchIcon[] = "\uf2f5";
 
 SearchEdit::SearchEdit(QWidget *parent) :
     QLineEdit(parent),
@@ -66,7 +65,7 @@ void SearchEdit::displaySearchIcon()
 
     m_searchLabel->setFont(searchLabelFont);
     m_searchLabel->resize(searchLabelSize);
-    m_searchLabel->setText(IoniconsSearchIcon);
+    m_searchLabel->setText(Icons::Search);
     m_searchLabel->setStyleSheet("QLabel { color: #333; }");
 
     QRect searchLabelGeometry(
