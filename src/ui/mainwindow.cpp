@@ -407,7 +407,8 @@ void MainWindow::openDocset(const QModelIndex &index)
 
     /// TODO: Keep anchor separately from file address
     QStringList urlParts = urlStr.toString().split(QLatin1Char('#'));
-    QUrl url = QUrl::fromLocalFile(urlParts[0]);
+    QString localUrl = QUrl::fromPercentEncoding(urlParts[0].toUtf8());
+    QUrl url = QUrl::fromLocalFile(localUrl);
     if (urlParts.count() > 1)
         /// NOTE: QUrl::DecodedMode is a fix for #121. Let's hope it doesn't break anything.
         url.setFragment(urlParts[1], QUrl::DecodedMode);
