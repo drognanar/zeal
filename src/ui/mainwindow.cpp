@@ -35,6 +35,7 @@
 #include "registry/listmodel.h"
 #include "registry/searchmodel.h"
 #include "ui/icons.h"
+#include "ui/customfusiontabstyle.h"
 
 #include <QAbstractEventDispatcher>
 #include <QCloseEvent>
@@ -61,6 +62,9 @@
 #include <QWebPage>
 #endif
 
+#ifdef Q_OS_MACX
+#include <QStyleFactory>
+#endif
 #include <qxtglobalshortcut.h>
 
 /// TODO: [Qt 5.5] Remove in favour of native Qt support (QTBUG-31762)
@@ -312,6 +316,9 @@ MainWindow::MainWindow(Core::Application *app, QWidget *parent) :
     m_tabBar->setDocumentMode(true);
     m_tabBar->setElideMode(Qt::ElideRight);
     m_tabBar->setStyleSheet(QStringLiteral("QTabBar::tab { width: 150px; height: 30px; }"));
+#ifdef Q_OS_MACX
+    m_tabBar->setStyle(new CustomFusionTabStyle(QStyleFactory::create("Fusion")));
+#endif
 
     connect(m_tabBar.get(), &QTabBar::currentChanged, this, &MainWindow::goToTab);
     connect(m_tabBar.get(), &QTabBar::tabCloseRequested, this, &MainWindow::closeTab);
