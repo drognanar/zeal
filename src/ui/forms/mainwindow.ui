@@ -407,7 +407,18 @@ QToolButton { max-width: 25px; }</string>
     <addaction name="actionNextTab"/>
     <addaction name="actionPreviousTab"/>
    </widget>
+   <widget class="QMenu" name="menuFind">
+    <property name="title">
+     <string>Find</string>
+    </property>
+    <addaction name="actionSearchDocsets"/>
+    <addaction name="separator"/>
+    <addaction name="actionSearchInPage"/>
+    <addaction name="actionFindNext"/>
+    <addaction name="actionFindPrevious"/>
+   </widget>
    <addaction name="menuFile"/>
+   <addaction name="menuFind"/>
    <addaction name="menuView"/>
    <addaction name="menuTabs"/>
    <addaction name="menuHelp"/>
@@ -473,6 +484,38 @@ QToolButton { max-width: 25px; }</string>
   <action name="actionCheckForUpdate">
    <property name="text">
     <string>&amp;Check for Update...</string>
+   </property>
+  </action>
+  <action name="actionSearchDocsets">
+   <property name="text">
+    <string>Search docsets</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::ApplicationShortcut</enum>
+   </property>
+  </action>
+  <action name="actionSearchInPage">
+   <property name="text">
+    <string>Search in page</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::ApplicationShortcut</enum>
+   </property>
+  </action>
+  <action name="actionFindNext">
+   <property name="text">
+    <string>Find next</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::ApplicationShortcut</enum>
+   </property>
+  </action>
+  <action name="actionFindPrevious">
+   <property name="text">
+    <string>Find previous</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::ApplicationShortcut</enum>
    </property>
   </action>
  </widget>

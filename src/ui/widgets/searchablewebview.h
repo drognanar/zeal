@@ -60,6 +60,9 @@ public:
     int zoomFactor() const;
     void setZoomFactor(int value);
 
+    void showSearch();
+    void findNext(bool backward = false);
+
     bool eventFilter(QObject *object, QEvent *event) override;
 
     QUrl currentUrl();
@@ -80,7 +83,6 @@ protected:
     void resizeEvent(QResizeEvent *event) override;
 
 private:
-    void showSearch();
     void hideSearch();
     void find(const QString &text);
     void findNext(const QString &text, bool backward = false);

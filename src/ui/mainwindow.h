@@ -167,7 +167,6 @@ private:
 
     Zeal::CancellationToken m_cancelSearch;
 
-    std::unique_ptr<QShortcut> m_focusSearch;
     std::unique_ptr<QTimer> m_deferOpenUrl;
     bool m_treeViewClicked = false;
 

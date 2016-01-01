@@ -110,10 +110,24 @@ MainWindow::MainWindow(Core::Application *app, QWidget *parent) :
     // Initialise ui.
     ui->setupUi(this);
 
-    m_focusSearch = std::unique_ptr<QShortcut>(new QShortcut(QKeySequence(QStringLiteral("Ctrl+K")), this));
-    m_focusSearch->setContext(Qt::ApplicationShortcut);
-    connect(m_focusSearch.get(), &QShortcut::activated,
+    ui->actionSearchDocsets->setShortcut(QKeySequence(QStringLiteral("Ctrl+K")));
+    connect(ui->actionSearchDocsets, &QAction::triggered,
             ui->lineEdit, static_cast<void (SearchEdit::*)()>(&SearchEdit::setFocus));
+
+    ui->actionSearchInPage->setShortcut(QKeySequence::Find);
+    connect(ui->actionSearchInPage, &QAction::triggered, [=]() {
+        ui->webView->showSearch();
+    });
+
+    ui->actionFindNext->setShortcut(QKeySequence::FindNext);
+    connect(ui->actionFindNext, &QAction::triggered, [=]() {
+        ui->webView->findNext();
+    });
+
+    ui->actionFindPrevious->setShortcut(QKeySequence::FindPrevious);
+    connect(ui->actionFindPrevious, &QAction::triggered, [=]() {
+        ui->webView->findNext(true);
+    });
 
     restoreGeometry(m_settings->windowGeometry);
     ui->splitter->restoreState(m_settings->verticalSplitterGeometry);

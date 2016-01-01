@@ -104,7 +104,7 @@ bool SearchableWebView::eventFilter(QObject *object, QEvent *event)
             return true;
         case Qt::Key_Enter:
         case Qt::Key_Return:
-            findNext(m_searchLineEdit->text(), keyEvent->modifiers() & Qt::ShiftModifier);
+            findNext(keyEvent->modifiers() & Qt::ShiftModifier);
             return true;
         default:
             break;
@@ -230,6 +230,11 @@ void SearchableWebView::find(const QString &text)
 
     m_webView->findText(text, QWebPage::HighlightAllOccurrences);
 #endif
+}
+
+void SearchableWebView::findNext(bool backward)
+{
+    findNext(m_searchLineEdit->text(), backward);
 }
 
 void SearchableWebView::findNext(const QString &text, bool backward)
