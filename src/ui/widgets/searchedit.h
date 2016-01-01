@@ -44,7 +44,6 @@ public:
     explicit SearchEdit(QWidget *parent = nullptr);
     ~SearchEdit();
 
-    void setTreeView(QTreeView *view);
     void clearQuery();
     void selectQuery();
     void setCompletions(const QStringList &completions);
@@ -52,6 +51,8 @@ public:
 signals:
     void focusIn();
     void focusOut();
+    void returnPressed();
+    void arrowKeyPressed(QKeyEvent *event);
 
 protected:
     bool event(QEvent *event) override;

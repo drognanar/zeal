@@ -116,12 +116,11 @@ bool SearchableWebView::eventFilter(QObject *object, QEvent *event)
 
 void SearchableWebView::load(const QUrl &url)
 {
+    // Do not set focus on the web view.
+    // This way the user can keep on searching without having to refocus the search bar.
+    m_webView->setEnabled(false);
     m_webView->load(url);
-}
-
-void SearchableWebView::focus()
-{
-    m_webView->setFocus();
+    m_webView->setEnabled(true);
 }
 
 QUrl SearchableWebView::currentUrl()
@@ -183,6 +182,20 @@ void SearchableWebView::keyPressEvent(QKeyEvent *event)
         event->ignore();
         break;
     }
+}
+
+void SearchableWebView::sendKeyEvent(QKeyEvent *event)
+{
+    QString code;
+    if (event->key() == Qt::Key_Up)
+        code = QStringLiteral("document.body.scrollTop -= 40;");
+    else if (event->key() == Qt::Key_Down)
+        code = QStringLiteral("document.body.scrollTop += 40;");
+#ifdef USE_WEBENGINE
+    m_webView->page()->runJavaScript(code);
+#else
+    m_webView->page()->currentFrame()->evaluateJavaScript(source);
+#endif
 }
 
 void SearchableWebView::resizeEvent(QResizeEvent *event)

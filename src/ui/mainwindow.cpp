@@ -213,7 +213,6 @@ MainWindow::MainWindow(Core::Application *app, QWidget *parent) :
     ui->forwardButton->setMenu(m_forwardMenu.get());
 
     // treeView and lineEdit
-    ui->lineEdit->setTreeView(ui->treeView);
     ui->lineEdit->setFocus();
     m_searchItemDelegate = std::unique_ptr<SearchItemDelegate>(new SearchItemDelegate(ui->treeView));
     connect(ui->lineEdit, &QLineEdit::textChanged, [this](const QString &text) {
@@ -221,17 +220,11 @@ MainWindow::MainWindow(Core::Application *app, QWidget *parent) :
     });
     ui->treeView->setItemDelegate(m_searchItemDelegate.get());
 
-    connect(ui->treeView, &QTreeView::clicked, [this](const QModelIndex &index) {
-        m_treeViewClicked = true;
-        ui->treeView->activated(index);
-    });
+    connect(ui->treeView, &QTreeView::clicked, ui->treeView, &QTreeView::activated);
 
     m_seeAlsoItemDelegate = std::unique_ptr<SeeAlsoDelegate>(new SeeAlsoDelegate());
     ui->sections->setItemDelegate(m_seeAlsoItemDelegate.get());
-    connect(ui->sections, &QListView::clicked, [this](const QModelIndex &index) {
-        m_treeViewClicked = true;
-        ui->sections->activated(index);
-    });
+    connect(ui->sections, &QListView::clicked, ui->sections, &QListView::activated);
     connect(ui->treeView, &QTreeView::activated, this, &MainWindow::openDocset);
     connect(ui->sections, &QListView::activated, this, &MainWindow::openDocset);
     connect(ui->forwardButton, &QToolButton::clicked, this, &MainWindow::forward);
@@ -303,6 +296,19 @@ MainWindow::MainWindow(Core::Application *app, QWidget *parent) :
             m_searchState->sectionsList->setResults();
             displayTreeView();
         }
+    });
+
+    connect(ui->lineEdit, &SearchEdit::arrowKeyPressed, [this](QKeyEvent *event) {
+        bool altPressed = event->modifiers() & Qt::AltModifier;
+        if (altPressed) {
+            navigatePage(event);
+        } else {
+            navigateToc(event);
+        }
+    });
+
+    connect(ui->lineEdit, &SearchEdit::returnPressed, [this]() {
+        emit ui->treeView->activated(ui->treeView->selectionModel()->currentIndex());
     });
 
     ui->actionNewTab->setShortcut(QKeySequence::AddTab);
@@ -441,11 +447,6 @@ void MainWindow::openDocset(const QModelIndex &index)
         url.setFragment(urlParts[1], QUrl::DecodedMode);
 
     ui->webView->load(url);
-
-    if (!m_treeViewClicked)
-        ui->webView->focus();
-    else
-        m_treeViewClicked = false;
 }
 
 /**
@@ -484,7 +485,6 @@ void MainWindow::queryCompleted()
 {
     displayTreeView();
 
-    m_treeViewClicked = true;
     ui->treeView->setCurrentIndex(m_searchState->zealSearch->index(0, 0, QModelIndex()));
     deferOpenDocset(ui->treeView->currentIndex());
 }
@@ -796,6 +796,22 @@ void MainWindow::forward()
     displayViewActions();
 }
 
+void MainWindow::navigateToc(QKeyEvent *event)
+{
+    const QModelIndex index = ui->treeView->currentIndex();
+    const int nextRow = index.row() + (event->key() == Qt::Key_Down ? 1 : -1);
+    if (nextRow >= 0 && nextRow < ui->treeView->model()->rowCount()) {
+        const QModelIndex sibling = index.sibling(nextRow, 0);
+        ui->treeView->setCurrentIndex(sibling);
+    }
+}
+
+void MainWindow::navigatePage(QKeyEvent *event)
+{
+    QKeyEvent *keyEvent = new QKeyEvent(event->type(), event->key(), 0);
+    ui->webView->sendKeyEvent(keyEvent);
+}
+
 /**
  * @brief MainWindow::addHistoryAction
  * Adds a menu item with a history entry.
@@ -937,7 +953,6 @@ void MainWindow::bringToFront(const Zeal::SearchQuery &query)
 
     if (!query.isEmpty()) {
         ui->lineEdit->setText(query.toString());
-        ui->treeView->setFocus();
         ui->treeView->activated(ui->treeView->currentIndex());
     }
 }

@@ -32,6 +32,8 @@
 #include <QWebFrame>
 #endif
 
+#include <QDebug>
+
 WebView::WebView(QWidget *parent) :
     QWebView(parent)
 {

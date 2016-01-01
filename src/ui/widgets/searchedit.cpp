@@ -35,7 +35,8 @@ SearchEdit::SearchEdit(QWidget *parent) :
     QLineEdit(parent),
     m_prefixCompleter(new QCompleter(this)),
     m_completionLabel(new QLabel(this)),
-    m_searchLabel(new QLabel(this))
+    m_searchLabel(new QLabel(this)),
+    m_focusing(false)
 {
     m_completionLabel->setObjectName(QStringLiteral("completer"));
     m_completionLabel->setStyleSheet(QStringLiteral("QLabel#completer { color: gray; }"));
@@ -44,6 +45,7 @@ SearchEdit::SearchEdit(QWidget *parent) :
     displaySearchIcon();
 
     connect(this, &SearchEdit::textChanged, this, &SearchEdit::displayCompletions);
+    connect(this, &QLineEdit::returnPressed, this, &SearchEdit::returnPressed);
 }
 
 SearchEdit::~SearchEdit()
@@ -82,12 +84,6 @@ void SearchEdit::resizeEvent(QResizeEvent *event)
 {
     QLineEdit::resizeEvent(event);
     displaySearchIcon();
-}
-
-void SearchEdit::setTreeView(QTreeView *view)
-{
-    m_treeView = view;
-    m_focusing = false;
 }
 
 /**
@@ -174,18 +170,9 @@ void SearchEdit::keyPressEvent(QKeyEvent *event)
         clearQuery();
         event->accept();
         break;
-    case Qt::Key_Return:
-        emit m_treeView->activated(m_treeView->selectionModel()->currentIndex());
-        event->accept();
-        break;
     case Qt::Key_Down:
     case Qt::Key_Up: {
-        const QModelIndex index = m_treeView->currentIndex();
-        const int nextRow = index.row() + (event->key() == Qt::Key_Down ? 1 : -1);
-        if (nextRow >= 0 && nextRow < m_treeView->model()->rowCount()) {
-            const QModelIndex sibling = index.sibling(nextRow, 0);
-            m_treeView->setCurrentIndex(sibling);
-        }
+        emit arrowKeyPressed(event);
         event->accept();
         break;
     }

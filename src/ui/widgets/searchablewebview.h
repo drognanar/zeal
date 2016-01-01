@@ -50,12 +50,12 @@ public:
     ~SearchableWebView();
 
     void load(const QUrl &url);
-    void focus();
     QSize sizeHint() const override;
     QWebPage *page() const;
     bool canGoBack() const;
     bool canGoForward() const;
     void setPage(QWebPage *page);
+    void sendKeyEvent(QKeyEvent *event);
 
     int zoomFactor() const;
     void setZoomFactor(int value);

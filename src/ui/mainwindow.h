@@ -142,6 +142,8 @@ private:
     void setupSearchBoxCompletions();
     void reloadTabState();
     void displayTabs();
+    void navigateToc(QKeyEvent *event);
+    void navigatePage(QKeyEvent *event);
     SearchState *currentSearchState();
     QString docsetName(const QUrl &url) const;
     QIcon docsetIcon(const QUrl &url) const;
