@@ -6,6 +6,10 @@ class QIcon;
 class Icons
 {
 public:
+    static char Back[];
+    static char Forward[];
+    static char OpenLink[];
+    static char Plus[];
     static char CloseCircled[];
     static char CloseRound[];
     static char Close[];

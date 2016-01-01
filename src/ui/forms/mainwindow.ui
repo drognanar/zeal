@@ -239,7 +239,7 @@ QToolButton { max-width: 25px; }</string>
               <string>Back</string>
              </property>
              <property name="text">
-              <string></string>
+              <string>&lt;</string>
              </property>
              <property name="iconSize">
               <size>
@@ -264,7 +264,7 @@ QToolButton { max-width: 25px; }</string>
               <string>Forward</string>
              </property>
              <property name="text">
-              <string></string>
+              <string>&gt;</string>
              </property>
              <property name="iconSize">
               <size>
@@ -291,7 +291,7 @@ QToolButton { max-width: 25px; }</string>
                 <string>New tab</string>
                </property>
                <property name="text">
-                <string></string>
+                <string>+</string>
                </property>
                <property name="iconSize">
                 <size>
@@ -335,7 +335,7 @@ QToolButton { max-width: 25px; }</string>
                 <string>Open page in web browser</string>
                </property>
                <property name="text">
-                <string></string>
+                <string>@</string>
                </property>
                <property name="autoRaise">
                 <bool>true</bool>

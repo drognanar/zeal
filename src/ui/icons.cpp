@@ -7,6 +7,10 @@
 #include <QRect>
 #include <QSize>
 
+char Icons::Back[] = "\uf3cf";
+char Icons::Forward[] = "\uf3d1";
+char Icons::OpenLink[] = "\uf39c";
+char Icons::Plus[] = "\uf218";
 char Icons::CloseCircled[] = "\uf128";
 char Icons::CloseRound[] = "\uf129";
 char Icons::Close[] = "\uf12a";

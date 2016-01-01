@@ -129,6 +129,11 @@ MainWindow::MainWindow(Core::Application *app, QWidget *parent) :
         ui->webView->findNext(true);
     });
 
+    ui->backButton->setText(Icons::Back);
+    ui->forwardButton->setText(Icons::Forward);
+    ui->newTabButton->setText(Icons::Plus);
+    ui->openUrlButton->setText(Icons::OpenLink);
+
     restoreGeometry(m_settings->windowGeometry);
     ui->splitter->restoreState(m_settings->verticalSplitterGeometry);
     connect(ui->splitter, &QSplitter::splitterMoved, [=](int, int) {
