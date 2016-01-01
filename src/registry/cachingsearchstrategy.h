@@ -35,7 +35,7 @@
 
 namespace Zeal {
 
-class SearchResult;
+struct SearchResult;
 
 /**
  * @brief The CachingSearchStrategy class

@@ -31,7 +31,7 @@
 namespace Zeal {
 
 class SearchQuery;
-class SearchResult;
+struct SearchResult;
 
 /**
  * @brief The DocsetSearchStrategy class

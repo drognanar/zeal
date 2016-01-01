@@ -6,8 +6,8 @@
 
 namespace Zeal {
 
-class SearchResult;
 class Docset;
+struct SearchResult;
 
 /**
  * @brief The DashToc class
