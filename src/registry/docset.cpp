@@ -88,9 +88,6 @@ QList<SearchResult> DashSearchStrategy::search(const SearchQuery &searchQuery, C
 
     const QString sanitizedQuery = searchQuery.sanitizedQuery();
 
-    if (searchQuery.hasKeywords() && !searchQuery.hasKeywords(m_docset->keywords()))
-        return QList<SearchResult>();
-
     QString queryStr;
 
     // Search all substrings
@@ -364,6 +361,9 @@ int Docset::scoreSubstringResult(const SearchQuery &query, const QString result)
 
 QList<SearchResult> Docset::search(const SearchQuery &searchQuery, CancellationToken token) const
 {
+    if (searchQuery.hasKeywords() && !searchQuery.hasKeywords(keywords()))
+        return QList<SearchResult>();
+
     return m_searchStrategy->search(searchQuery, token);
 }
 

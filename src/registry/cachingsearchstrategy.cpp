@@ -53,17 +53,13 @@ bool CachingSearchStrategy::validResult(const SearchQuery &searchQuery, SearchRe
 
 QString CachingSearchStrategy::getCacheEntry(const SearchQuery &searchQuery) const
 {
-    // TODO: do not use the `fromString` in this method.
-    // TODO: remove as many `fromString` uses as possible.
-    // TODO: then make the registry process keywords globally.
-    for (int i = searchQuery.toString().size(); i > 0; i--) {
-        QString candidate = searchQuery.toString().mid(0, i);
+    for (int i = searchQuery.query().size(); i > 0; i--) {
+        QString candidate = searchQuery.query().mid(0, i);
 
         /// Use the cache only if the cache entry contains all results.
-        /// Also handle cases where prefix is a docset query `std:`.
+        /// Also check that the entry is a true prefix.
         if (m_cache.contains(candidate)
-                && m_cache[candidate]->size() < Docset::MaxDocsetResultsCount
-                && SearchQuery::fromString(candidate).query().size() == i)
+                && m_cache[candidate]->size() < Docset::MaxDocsetResultsCount)
             return candidate;
     }
     return QString();
@@ -81,7 +77,7 @@ QList<SearchResult> CachingSearchStrategy::searchWithCache(const SearchQuery &se
             results.append(result);
     }
 
-    m_cache.insert(searchQuery.toString(), new QList<SearchResult>(results));
+    m_cache.insert(searchQuery.query(), new QList<SearchResult>(results));
     return results;
 }
 
@@ -91,6 +87,6 @@ QList<SearchResult> CachingSearchStrategy::searchWithoutCache(const SearchQuery 
 
     /// Only cache the results if they are not partial.
     if (!token.isCancelled())
-        m_cache.insert(searchQuery.toString(), new QList<SearchResult>(results));
+        m_cache.insert(searchQuery.query(), new QList<SearchResult>(results));
     return results;
 }
