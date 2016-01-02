@@ -88,6 +88,7 @@ MainWindow::MainWindow(Core::Application *app, QWidget *parent) :
     m_settings(app->settings()),
     m_zealNetworkManager(new NetworkAccessManager(this)),
     m_zealListModel(new ListModel(app->docsetRegistry(), this)),
+    m_seeAlsoItemDelegate(new SeeAlsoDelegate()),
     m_settingsDialog(new SettingsDialog(app, m_zealListModel.get(), this)),
     m_deferOpenUrl(new QTimer()),
     m_globalShortcut(new QxtGlobalShortcut(m_settings->showShortcut, this)),
@@ -222,7 +223,6 @@ MainWindow::MainWindow(Core::Application *app, QWidget *parent) :
 
     connect(ui->treeView, &QTreeView::clicked, ui->treeView, &QTreeView::activated);
 
-    m_seeAlsoItemDelegate = std::unique_ptr<SeeAlsoDelegate>(new SeeAlsoDelegate());
     ui->sections->setItemDelegate(m_seeAlsoItemDelegate.get());
     connect(ui->sections, &QListView::clicked, ui->sections, &QListView::activated);
     connect(ui->treeView, &QTreeView::activated, this, &MainWindow::openDocset);
@@ -697,8 +697,8 @@ void MainWindow::reloadTabState()
  */
 void MainWindow::scrollSearch()
 {
-    ui->treeView->verticalScrollBar()->setValue(m_searchState->scrollPosition);
-    ui->sections->verticalScrollBar()->setValue(m_searchState->sectionsScroll);
+    ui->treeView->verticalScrollBar()->setValue(currentSearchState()->scrollPosition);
+    ui->sections->verticalScrollBar()->setValue(currentSearchState()->sectionsScroll);
 }
 
 /**
@@ -719,7 +719,7 @@ void MainWindow::saveTabState()
 
 void MainWindow::onSearchComplete()
 {
-    m_searchState->zealSearch->setResults(m_application->docsetRegistry()->queryResults());
+    currentSearchState()->zealSearch->setResults(m_application->docsetRegistry()->queryResults());
 }
 
 /**

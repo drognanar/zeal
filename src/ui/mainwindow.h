@@ -153,6 +153,7 @@ private:
 
     QList<SearchState *> m_tabs;
 
+    // Pointer to a `SearchState` for the currently opened tab.
     SearchState *m_searchState = nullptr;
 
     std::unique_ptr<Ui::MainWindow> ui;
