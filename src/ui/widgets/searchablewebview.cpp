@@ -194,7 +194,7 @@ void SearchableWebView::sendKeyEvent(QKeyEvent *event)
 #ifdef USE_WEBENGINE
     m_webView->page()->runJavaScript(code);
 #else
-    m_webView->page()->currentFrame()->evaluateJavaScript(source);
+    m_webView->page()->currentFrame()->evaluateJavaScript(code);
 #endif
 }
 
