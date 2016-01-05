@@ -39,12 +39,11 @@ class DocsetSearchStrategy;
 class SearchQuery;
 class SearchResult;
 
-class Docset : public QObject
+class Docset
 {
-    Q_OBJECT
 public:
     explicit Docset(const QString &path);
-    ~Docset() override;
+    ~Docset();
 
     bool isValid() const;
 
