@@ -23,16 +23,20 @@
 
 #include "searchedit.h"
 
+#include "registry/docsetregistry.h"
 #include "registry/searchquery.h"
 #include "ui/icons.h"
 
 #include <QCompleter>
 #include <QKeyEvent>
 #include <QLabel>
-#include <QTreeView>
+#include <QStyleOptionFrameV2>
+
+using namespace Zeal;
 
 SearchEdit::SearchEdit(QWidget *parent) :
     QLineEdit(parent),
+    m_registry(nullptr),
     m_prefixCompleter(new QCompleter(this)),
     m_completionLabel(new QLabel(this)),
     m_searchLabel(new QLabel(this)),
@@ -44,6 +48,7 @@ SearchEdit::SearchEdit(QWidget *parent) :
 
     displaySearchIcon();
 
+    connect(this, &SearchEdit::textChanged, this, &SearchEdit::updateHighlight);
     connect(this, &SearchEdit::textChanged, this, &SearchEdit::displayCompletions);
     connect(this, &QLineEdit::returnPressed, this, &SearchEdit::returnPressed);
 }
@@ -78,6 +83,11 @@ void SearchEdit::displaySearchIcon()
 
     m_searchLabel->setGeometry(searchLabelGeometry);
 
+}
+
+void SearchEdit::setDocsetRegistry(DocsetRegistry *registry)
+{
+    m_registry = registry;
 }
 
 void SearchEdit::resizeEvent(QResizeEvent *event)
@@ -234,6 +244,23 @@ QString SearchEdit::currentCompletion(const QString &text) const
     return m_prefixCompleter->currentCompletion();
 }
 
+SearchQuery SearchEdit::getSearchQuery(const QString &queryStr) const
+{
+    return m_registry != nullptr
+            ? m_registry->getSearchQuery(queryStr)
+            : SearchQuery::fromString(queryStr);
+}
+
+/**
+ * @brief SearchEdit::updateHighlight
+ * Emits a string that should be highlighted.
+ */
+void SearchEdit::updateHighlight(const QString &searchEditText)
+{
+    const Zeal::SearchQuery currentQuery = getSearchQuery(searchEditText);
+    emit highlightChanged(currentQuery.query());
+}
+
 /**
  * @brief SearchEdit::queryStart Returns index at which the query starts.
  *
@@ -244,6 +271,6 @@ QString SearchEdit::currentCompletion(const QString &text) const
  */
 int SearchEdit::queryStart() const
 {
-    const Zeal::SearchQuery currentQuery = Zeal::SearchQuery::fromString(text());
+    const Zeal::SearchQuery currentQuery = getSearchQuery(text());
     return currentQuery.query().isEmpty() ? 0 : currentQuery.keywordPrefixSize();
 }

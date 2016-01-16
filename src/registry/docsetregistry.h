@@ -35,6 +35,8 @@ class QThread;
 
 namespace Zeal {
 
+class SearchQuery;
+
 /**
  * @brief The DocsetRegistry class
  * A docset registry manages all docsets. It is used to perform queries.
@@ -56,10 +58,10 @@ public:
     Docset *docset(const QString &name) const;
     Docset *docset(int index) const;
 
-    QString prepareQuery(const QString &rawQuery);
     void search(const QString &query, CancellationToken token);
     const QList<SearchResult> &queryResults();
     QList<Docset *> docsets() const;
+    SearchQuery getSearchQuery(const QString &queryStr) const;
 
     /// The number of results that should be retuned by the search.
     static const int MaxResults = 100;

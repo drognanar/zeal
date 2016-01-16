@@ -48,7 +48,7 @@ class Application : public QObject
 {
     Q_OBJECT
 public:
-    explicit Application(const SearchQuery &query, QObject *parent = nullptr);
+    explicit Application(const QString &query, QObject *parent = nullptr);
     ~Application() override;
 
     static QString localServerName();

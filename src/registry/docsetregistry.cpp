@@ -138,6 +138,12 @@ void MergeQueryResults(QList<SearchResult> &finalResult, const QList<SearchResul
     finalResult += partial;
 }
 
+SearchQuery DocsetRegistry::getSearchQuery(const QString &queryStr) const
+{
+    // TODO: implement query generation with custom keywords.
+    return SearchQuery::fromString(queryStr);
+}
+
 void DocsetRegistry::_runQueryAsync(const QString &query, const CancellationToken token)
 {
     SearchQuery searchQuery = SearchQuery::fromString(query);

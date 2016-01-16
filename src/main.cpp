@@ -229,7 +229,7 @@ int main(int argc, char *argv[])
 
     QDir::setSearchPaths(QStringLiteral("typeIcon"), {QStringLiteral(":/icons/type")});
 
-    QScopedPointer<Zeal::Core::Application> app(new Zeal::Core::Application(clParams.query));
+    QScopedPointer<Zeal::Core::Application> app(new Zeal::Core::Application(clParams.query.toString()));
 
     return qapp->exec();
 }

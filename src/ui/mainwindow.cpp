@@ -215,9 +215,10 @@ MainWindow::MainWindow(Core::Application *app, QWidget *parent) :
 
     // treeView and lineEdit
     ui->lineEdit->setFocus();
+    ui->lineEdit->setDocsetRegistry(m_application->docsetRegistry());
     m_searchItemDelegate = std::unique_ptr<SearchItemDelegate>(new SearchItemDelegate(ui->treeView));
-    connect(ui->lineEdit, &QLineEdit::textChanged, [this](const QString &text) {
-        m_searchItemDelegate->setHighlight(Zeal::SearchQuery::fromString(text).query());
+    connect(ui->lineEdit, &SearchEdit::highlightChanged, [this](const QString &highlight) {
+        m_searchItemDelegate->setHighlight(highlight);
     });
     ui->treeView->setItemDelegate(m_searchItemDelegate.get());
 
@@ -946,7 +947,7 @@ void MainWindow::removeTrayIcon()
  * Brings the window to front.
  * @param query Query which it should execute.
  */
-void MainWindow::bringToFront(const Zeal::SearchQuery &query)
+void MainWindow::bringToFront(const QString &query)
 {
     show();
     setWindowState((windowState() & ~Qt::WindowMinimized) | Qt::WindowActive);
@@ -955,7 +956,7 @@ void MainWindow::bringToFront(const Zeal::SearchQuery &query)
     ui->lineEdit->setFocus();
 
     if (!query.isEmpty()) {
-        ui->lineEdit->setText(query.toString());
+        ui->lineEdit->setText(query);
         ui->treeView->activated(ui->treeView->currentIndex());
     }
 }

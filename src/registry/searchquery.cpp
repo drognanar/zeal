@@ -40,6 +40,14 @@ SearchQuery::SearchQuery(const QString &query, const QStringList &keywords) :
     setKeywords(keywords);
 }
 
+/**
+ * @brief SearchQuery::fromString
+ * Creates a search query from its string representation.
+ * Do not call directly.
+ * Call `DocsetRegistry::getSearchQuery()` to handle docset keywords.
+ *
+ * @param str String representation of a query.
+ */
 SearchQuery SearchQuery::fromString(const QString &str)
 {
     const int sepAt = str.indexOf(prefixSeparator);

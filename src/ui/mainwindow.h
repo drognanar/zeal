@@ -109,7 +109,7 @@ public:
     explicit MainWindow(Zeal::Core::Application *app, QWidget *parent = nullptr);
     ~MainWindow() override;
 
-    void bringToFront(const Zeal::SearchQuery &query = Zeal::SearchQuery());
+    void bringToFront(const QString &query = QString());
     void createTab();
 
 public slots:

@@ -52,7 +52,7 @@ const char ReleasesApiUrl[] = "http://api.zealdocs.org/v1/releases";
 
 Application *Application::m_instance = nullptr;
 
-Application::Application(const SearchQuery &query, QObject *parent) :
+Application::Application(const QString &query, QObject *parent) :
     QObject(parent),
     m_settings(new Settings(this)),
     m_localServer(new QLocalServer(this)),
@@ -76,7 +76,7 @@ Application::Application(const SearchQuery &query, QObject *parent) :
         connection->waitForReadyRead();
         if (connection->bytesAvailable()) {
             QDataStream in(connection);
-            Zeal::SearchQuery query;
+            QString query;
             in >> query;
             m_mainWindow->bringToFront(query);
         } else {

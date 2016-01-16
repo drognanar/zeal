@@ -31,7 +31,13 @@ class QCompleter;
 class QEvent;
 class QLabel;
 class QResizeEvent;
-class QTreeView;
+
+namespace Zeal {
+
+class DocsetRegistry;
+class SearchQuery;
+
+}
 
 /**
  * @brief The SearchEdit class
@@ -42,15 +48,18 @@ class SearchEdit : public QLineEdit
     Q_OBJECT
 public:
     explicit SearchEdit(QWidget *parent = nullptr);
+    // NOTE: Keep this method for smart pointers.
     ~SearchEdit();
 
     void clearQuery();
     void selectQuery();
     void setCompletions(const QStringList &completions);
+    void setDocsetRegistry(Zeal::DocsetRegistry *registry);
 
 signals:
     void focusIn();
     void focusOut();
+    void highlightChanged(QString highlight);
     void returnPressed();
     void arrowKeyPressed(QKeyEvent *event);
 
@@ -64,14 +73,16 @@ protected:
 
 private slots:
     void displayCompletions(const QString &searchEditText);
+    void updateHighlight(const QString &searchEditText);
 
 private:
     QString currentCompletion(const QString &text) const;
     int queryStart() const;
     void displaySearchIcon();
+    Zeal::SearchQuery getSearchQuery(const QString &queryStr) const;
 
+    Zeal::DocsetRegistry *m_registry;
     std::unique_ptr<QCompleter> m_prefixCompleter;
-    QTreeView *m_treeView = nullptr;
     std::unique_ptr<QLabel> m_completionLabel;
     std::unique_ptr<QLabel> m_searchLabel;
     bool m_focusing = false;
