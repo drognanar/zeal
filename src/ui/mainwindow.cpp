@@ -777,7 +777,11 @@ void MainWindow::displayViewActions()
  */
 void MainWindow::displayTitle()
 {
-    setWindowTitle(QString("Zeal - %1").arg(ui->webView->currentTitle()));
+    QString name = docsetName(ui->webView->currentUrl());
+    if (name.isEmpty())
+        setWindowTitle(QString("Zeal - %1").arg(ui->webView->currentTitle()));
+    else
+        setWindowTitle(QString("Zeal - %1 - %2").arg(name, ui->webView->currentTitle()));
 }
 
 /**
