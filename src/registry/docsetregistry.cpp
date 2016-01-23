@@ -23,6 +23,7 @@
 
 #include "docsetregistry.h"
 
+#include "docsetkeywords.h"
 #include "searchquery.h"
 #include "searchresult.h"
 
@@ -75,6 +76,56 @@ QStringList DocsetRegistry::names() const
     return m_docsets.keys();
 }
 
+QStringList DocsetRegistry::keywords() const
+{
+    return docsetKeywords().getKeywords();
+}
+
+DocsetKeywords DocsetRegistry::docsetKeywords() const
+{
+    DocsetKeywords keywords;
+
+    // Add keywords for docsets.
+    for (const Docset * const docset: docsets())
+        for (QString keyword: docset->keywords())
+            keywords.add(keyword, const_cast<Docset*>(docset));
+
+    // Add user defined keywords for docsets.
+    for (const QString docsetName: m_userDefinedKeywords.keys())
+        if (m_docsets.contains(docsetName)) {
+            QString keyword = m_userDefinedKeywords.value(docsetName);
+            keywords.add(keyword, docset(docsetName));
+        }
+
+    // Add keywords for docset groups.
+    for (QString keyword: m_docsetGroups.keys())
+        keywords.add(keyword, m_docsetGroups.value(keyword));
+
+    return keywords;
+}
+
+void DocsetRegistry::setKeywordGroups(const QMap<QString, QStringList> docsetKeywordGroups)
+{
+    m_docsetGroups = docsetKeywordGroups;
+}
+
+void DocsetRegistry::setUserDefinedKeywords(const QMap<QString, QString> docsetKeywords)
+{
+    m_userDefinedKeywords = docsetKeywords;
+}
+
+QString DocsetRegistry::userDefinedKeyword(const QString &docsetName) const
+{
+    QString userDefinedKeyword = m_userDefinedKeywords.value(docsetName);
+    if (userDefinedKeyword != nullptr)
+        return userDefinedKeyword;
+
+    Docset *doc = docset(docsetName);
+    return doc != nullptr
+        ? doc->keywords().first()
+        : QString();
+}
+
 void DocsetRegistry::remove(const QString &name)
 {
     emit docsetAboutToBeRemoved(name);
@@ -84,7 +135,7 @@ void DocsetRegistry::remove(const QString &name)
 
 Docset *DocsetRegistry::docset(const QString &name) const
 {
-    return m_docsets[name];
+    return m_docsets.value(name);
 }
 
 Docset *DocsetRegistry::docset(int index) const
@@ -140,13 +191,12 @@ void MergeQueryResults(QList<SearchResult> &finalResult, const QList<SearchResul
 
 SearchQuery DocsetRegistry::getSearchQuery(const QString &queryStr) const
 {
-    // TODO: implement query generation with custom keywords.
-    return SearchQuery::fromString(queryStr);
+    return SearchQuery::fromString(queryStr, docsetKeywords());
 }
 
 void DocsetRegistry::_runQueryAsync(const QString &query, const CancellationToken token)
 {
-    SearchQuery searchQuery = SearchQuery::fromString(query);
+    SearchQuery searchQuery = getSearchQuery(query);
     QFuture<QList<SearchResult>> queryResultsFuture = QtConcurrent::mappedReduced(
                 docsets(),
                 std::bind(&Docset::search, std::placeholders::_1, searchQuery, token),

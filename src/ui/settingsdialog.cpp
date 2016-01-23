@@ -24,12 +24,16 @@
 #include "settingsdialog.h"
 
 #include "docsetlistitemdelegate.h"
+#include "icons.h"
 #include "progressitemdelegate.h"
 #include "ui_settingsdialog.h"
 #include "core/application.h"
 #include "core/settings.h"
 #include "registry/docsetregistry.h"
+#include "registry/installeddocsetmodel.h"
 #include "registry/listmodel.h"
+
+#include <algorithm>
 
 #include <QClipboard>
 #include <QDir>
@@ -69,12 +73,16 @@ const char DownloadPreviousReceived[] = "downloadPreviousReceived";
 const char ListItemIndexProperty[] = "listItem";
 }
 
-SettingsDialog::SettingsDialog(Core::Application *app, ListModel *listModel, QWidget *parent) :
+SettingsDialog::SettingsDialog(Core::Application *app, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::SettingsDialog()),
     m_application(app),
-    m_docsetRegistry(app->docsetRegistry())
+    m_docsetRegistry(app->docsetRegistry()),
+    m_installedDocsetsModel(new InstalledDocsetModel(app->docsetRegistry()))
 {
+    // TODO: split panes into separate classes?
+    // TODO: create separate view models for different classes?
+    // TODO: reset keyword to default if string empty.
     ui->setupUi(this);
 
 #ifdef Q_OS_OSX
@@ -86,7 +94,19 @@ SettingsDialog::SettingsDialog(Core::Application *app, ListModel *listModel, QWi
     ui->docsetsProgress->hide();
 
     ui->installedDocsetList->setItemDelegate(new DocsetListItemDelegate(this));
-    ui->installedDocsetList->setModel(listModel);
+    ui->installedDocsetList->setModel(m_installedDocsetsModel.get());
+    ui->installedDocsetList->horizontalHeader()->setSectionResizeMode(
+        InstalledDocsetModel::Columns::DocsetColumn, QHeaderView::Stretch);
+    ui->installedDocsetList->horizontalHeader()->setSectionResizeMode(
+        InstalledDocsetModel::Columns::KeywordColumn, QHeaderView::Fixed);
+    ui->installedDocsetList->horizontalHeader()->resizeSection(
+        InstalledDocsetModel::Columns::KeywordColumn, 150);
+    ui->installedDocsetList->horizontalHeader()->setSectionResizeMode(
+        InstalledDocsetModel::Columns::UpdateColumn, QHeaderView::Fixed);
+    ui->installedDocsetList->horizontalHeader()->resizeSection(
+       InstalledDocsetModel::Columns::UpdateColumn, 100);
+    ui->installedDocsetList->verticalHeader()->setSectionResizeMode(QHeaderView::Fixed);
+    ui->installedDocsetList->verticalHeader()->setDefaultSectionSize(16);
 
     ui->installedDocsetList->setSelectionMode(QAbstractItemView::ExtendedSelection);
     QItemSelectionModel *selectionModel = ui->installedDocsetList->selectionModel();
@@ -112,6 +132,18 @@ SettingsDialog::SettingsDialog(Core::Application *app, ListModel *listModel, QWi
     connect(ui->removeDocsetsButton, &QPushButton::clicked,
             this, &SettingsDialog::removeSelectedDocsets);
 
+    connect(m_docsetRegistry, &DocsetRegistry::docsetAdded, this, [this]() {
+        displayKeywordGroup();
+    });
+    connect(m_docsetRegistry, &DocsetRegistry::docsetRemoved, this, [this]() {
+        displayKeywordGroup();
+    });
+
+    ui->addKeywordGroupButton->setText(Icons::Plus);
+    ui->addKeywordGroupButton->setShortcut(QKeySequence::New);
+    ui->removeKeywordGroupButton->setText(Icons::Minus);
+    ui->removeKeywordGroupButton->setShortcut(QKeySequence::Delete);
+
     ui->availableDocsetList->setItemDelegate(new ProgressItemDelegate(this));
 
     // Setup signals & slots
@@ -126,6 +158,28 @@ SettingsDialog::SettingsDialog(Core::Application *app, ListModel *listModel, QWi
             this, [](int value) {
         QWebSettings::globalSettings()->setFontSize(QWebSettings::MinimumFontSize, value);
     });
+
+    connect(ui->addKeywordGroupButton, &QPushButton::clicked, [this]() {
+        QListWidgetItem *keywordItem = new QListWidgetItem(getKeywordName(), ui->keywordGroupsList);
+        keywordItem->setFlags(keywordItem->flags() | Qt::ItemIsEditable);
+        keywordItem->setData(Qt::UserRole + 1, QStringList());
+        ui->keywordGroupsList->selectionModel()->select(QModelIndex(), QItemSelectionModel::Clear);
+        ui->keywordGroupsList->setCurrentItem(keywordItem);
+        ui->keywordGroupsList->editItem(keywordItem);
+    });
+    connect(ui->removeKeywordGroupButton, &QPushButton::clicked, [this]() {
+        QList<QListWidgetItem*> selectedItems = ui->keywordGroupsList->selectedItems();
+        if (ui->keywordGroupsList->count() > selectedItems.size()) {
+            // TODO: get the min selected row index.
+            // TODO: update selection after removing all items.
+            // TODO: validate name changed to ensure uniqueness.
+            int newSelectionRow = std::max(0, ui->keywordGroupsList->row(selectedItems.first()) - 1);
+            ui->keywordGroupsList->item(newSelectionRow)->setSelected(true);
+        }
+        qDeleteAll(selectedItems);
+    });
+    connect(ui->keywordGroupsList, &QListWidget::currentRowChanged, this, &SettingsDialog::displayKeywordGroup);
+    connect(ui->keywordGroupsDocsetSelection, &QListWidget::itemChanged, this, &SettingsDialog::updateKeywordGroupDocsets);
 
     connect(ui->addFeedButton, &QPushButton::clicked, this, &SettingsDialog::addDashFeed);
     connect(ui->refreshButton, &QPushButton::clicked, this, &SettingsDialog::downloadDocsetList);
@@ -143,6 +197,30 @@ SettingsDialog::SettingsDialog(Core::Application *app, ListModel *listModel, QWi
 SettingsDialog::~SettingsDialog()
 {
     delete ui;
+}
+
+QString SettingsDialog::getKeywordName()
+{
+    QString keywordCandidate;
+    do {
+        keywordCandidate = QString("keyword_name_%1").arg(keywordId);
+        keywordId++;
+    } while (ui->keywordGroupsList->findItems(keywordCandidate, Qt::MatchExactly).size() != 0);
+    return keywordCandidate;
+}
+
+void SettingsDialog::navigateToCreateKeywords()
+{
+    int keywordsTabIndex = ui->tabWidget->indexOf(ui->keywordsTab);
+    ui->tabWidget->setCurrentIndex(keywordsTabIndex);
+    on_tabWidget_currentChanged(keywordsTabIndex);
+}
+
+void SettingsDialog::navigateToInstallDocsets()
+{
+    int docsetsTabIndex = ui->tabWidget->indexOf(ui->docsetsTab);
+    ui->tabWidget->setCurrentIndex(docsetsTabIndex);
+    on_tabWidget_currentChanged(docsetsTabIndex);
 }
 
 void SettingsDialog::addDashFeed()
@@ -639,6 +717,7 @@ void SettingsDialog::processDocsetList(const QJsonArray &list)
                 ui->updateAllDocsetsButton->setEnabled(true);
             }
         }
+        m_installedDocsetsModel->populateModelData();
     }
 
     ui->installedDocsetList->reset();
@@ -699,6 +778,51 @@ void SettingsDialog::removeDocsets(const QStringList &names)
     }
 }
 
+/**
+ * @brief SettingsDialog::displayKeywordGroup
+ * Displays the triggered docsets for the currently selected keyword.
+ */
+void SettingsDialog::displayKeywordGroup(int keywordGroupRow)
+{
+    Q_UNUSED(keywordGroupRow);
+
+    QListWidgetItem *currentItem = ui->keywordGroupsList->currentItem();
+    if (currentItem == nullptr)
+        return;
+
+    QStringList keywords = currentItem->data(Qt::UserRole + 1).toStringList();
+
+    // Clear and rebuild selections.
+    ui->keywordGroupsDocsetSelection->clear();
+    for (Docset *docset: m_docsetRegistry->docsets()) {
+        QListWidgetItem *docsetSelection = new QListWidgetItem(docset->icon(), docset->name());
+
+        docsetSelection->setFlags(docsetSelection->flags() | Qt::ItemIsUserCheckable);
+        docsetSelection->setCheckState(keywords.contains(docset->name(), Qt::CaseInsensitive)
+                                       ? Qt::Checked
+                                       : Qt::Unchecked);
+
+        ui->keywordGroupsDocsetSelection->addItem(docsetSelection);
+    }
+}
+
+/**
+ * @brief SettingsDialog::updateKeywordGroup
+ * Updates a keyword group when one of the items gets selected/deselected.
+ */
+void SettingsDialog::updateKeywordGroupDocsets(QListWidgetItem *item)
+{
+    QStringList keywords = ui->keywordGroupsList->currentItem()->data(Qt::UserRole + 1).toStringList();
+    QString keyword = item->data(Qt::DisplayRole).toString();
+    bool hasKeyword = keywords.contains(keyword, Qt::CaseInsensitive);
+    if (item->checkState() == Qt::Checked && !hasKeyword)
+        keywords.append(keyword);
+    else if (item->checkState() == Qt::Unchecked && hasKeyword)
+        keywords.removeOne(keyword);
+
+    ui->keywordGroupsList->currentItem()->setData(Qt::UserRole + 1, keywords);
+}
+
 void SettingsDialog::displayProgress()
 {
     ui->docsetsProgress->setValue(percent(m_combinedReceived, m_combinedTotal));
@@ -751,6 +875,17 @@ void SettingsDialog::loadSettings()
     //
     ui->minFontSize->setValue(settings->minimumFontSize);
     ui->storageEdit->setText(QDir::toNativeSeparators(settings->docsetPath));
+
+    m_installedDocsetsModel->populateModelData();
+
+    ui->keywordGroupsList->clear();
+    for (QString keyword: settings->docsetKeywordGroups.keys()) {
+        QStringList docsets = settings->docsetKeywordGroups.value(keyword);
+        QListWidgetItem *docsetItem = new QListWidgetItem(keyword, ui->keywordGroupsList);
+        docsetItem->setData(Qt::UserRole + 1, docsets);
+    }
+    if (settings->docsetKeywordGroups.count() > 0)
+        ui->keywordGroupsList->setCurrentRow(0);
 
     // Network Tab
     switch (settings->proxyType) {
@@ -806,6 +941,24 @@ void SettingsDialog::saveSettings()
     settings->proxyAuthenticate = ui->httpProxyNeedsAuth->isChecked();
     settings->proxyUserName = ui->httpProxyUser->text();
     settings->proxyPassword = ui->httpProxyPass->text();
+
+    settings->docsetKeywordGroups.clear();
+    for (int i =  0; i < ui->keywordGroupsList->count(); i++) {
+        QListWidgetItem *keywordItem = ui->keywordGroupsList->item(i);
+        settings->docsetKeywordGroups.insert(
+                    keywordItem->data(Qt::DisplayRole).toString(),
+                    keywordItem->data(Qt::UserRole + 1).toStringList());
+    }
+
+    settings->docsetKeywords.clear();
+    for (int i = 0; i < m_installedDocsetsModel->rowCount(); i++) {
+        QModelIndex docsetColumn = m_installedDocsetsModel->index(i, InstalledDocsetModel::DocsetColumn);
+        QModelIndex keywordColumn = m_installedDocsetsModel->index(i, InstalledDocsetModel::KeywordColumn);
+
+        settings->docsetKeywords.insert(
+                    m_installedDocsetsModel->data(docsetColumn).toString(),
+                    m_installedDocsetsModel->data(keywordColumn).toString());
+    }
 
     settings->save();
 }

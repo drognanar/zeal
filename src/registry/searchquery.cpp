@@ -23,6 +23,11 @@
 
 #include "searchquery.h"
 
+#include "docset.h"
+#include "docsetkeywords.h"
+
+#include <QString>
+
 using namespace Zeal;
 
 namespace {
@@ -34,89 +39,80 @@ SearchQuery::SearchQuery()
 {
 }
 
-SearchQuery::SearchQuery(const QString &query, const QStringList &keywords) :
-    m_query(query)
+SearchQuery::SearchQuery(const QString &query,
+                         const QString &keywordPrefix,
+                         const QStringList &docsets)
+   : m_query(query),
+     m_keywordPrefix(keywordPrefix),
+     m_enabledDocsets(docsets)
 {
-    setKeywords(keywords);
 }
 
 /**
  * @brief SearchQuery::fromString
  * Creates a search query from its string representation.
- * Do not call directly.
- * Call `DocsetRegistry::getSearchQuery()` to handle docset keywords.
  *
  * @param str String representation of a query.
  */
-SearchQuery SearchQuery::fromString(const QString &str)
+SearchQuery SearchQuery::fromString(const QString &str, const DocsetKeywords docsetKeywords)
 {
     const int sepAt = str.indexOf(prefixSeparator);
     const int next = sepAt + 1;
 
     QString query;
-    QStringList keywords;
-    if (sepAt > 0 && (next >= str.size() || str.at(next) != prefixSeparator)) {
-        query = str.mid(next).trimmed();
+    QString keywordStr;
+    QStringList docsets;
 
-        const QString keywordStr = str.left(sepAt).trimmed();
-        keywords = keywordStr.split(keywordSeparator);
-    } else {
-        query = str.trimmed();
+    // Try to get keywords from the query.
+    if (sepAt > 0) {
+        keywordStr = str.left(sepAt).trimmed();
+        docsets = tryGetKeywords(keywordStr, docsetKeywords);
     }
 
-    return SearchQuery(query, keywords);
+    // If keywords were found then query should not include the keywords.
+    // Otherwise query should include entire str.
+    if (docsets.size() > 0) {
+        query = str.mid(next).trimmed();
+        keywordStr = keywordStr + ":";
+    } else {
+        query = str.trimmed();
+        keywordStr = QString();
+    }
+
+    return SearchQuery(query, keywordStr, docsets);
+}
+
+QStringList SearchQuery::tryGetKeywords(QString keywordStr, DocsetKeywords docsetKeywords)
+{
+    QStringList docsets;
+    QStringList candidateKeywords = keywordStr.split(keywordSeparator);
+
+    for (QString candidate: candidateKeywords)
+        docsets += docsetKeywords.getKeywordDocsets(candidate);
+
+    return docsets;
 }
 
 QString SearchQuery::toString() const
 {
-    if (m_keywords.isEmpty())
-        return m_query;
-    else
-        return m_keywordPrefix + m_query;
+    return m_keywordPrefix + m_query;
 }
 
 bool SearchQuery::isEmpty() const
 {
-    return m_query.isEmpty() && m_keywords.isEmpty();
+    return m_query.isEmpty() && m_keywordPrefix.isEmpty();
 }
 
-QStringList SearchQuery::keywords() const
+void SearchQuery::setKeywordPrefix(const QString &keywordPrefix)
 {
-    return m_keywords;
+    m_keywordPrefix = keywordPrefix.isEmpty()
+            ? keywordPrefix
+            : keywordPrefix + prefixSeparator;
 }
 
-void SearchQuery::setKeywords(const QStringList &list)
+bool SearchQuery::isEnabled(const Docset *docset) const
 {
-    if (list.isEmpty())
-        return;
-
-    m_keywords = list;
-    m_keywordPrefix = list.join(keywordSeparator) + prefixSeparator;
-}
-
-bool SearchQuery::hasKeywords() const
-{
-    return !m_keywords.isEmpty();
-}
-
-bool SearchQuery::hasKeyword(const QString &keyword) const
-{
-    // Temporary workaround for #333
-    /// TODO: Remove once #167 is implemented
-    for (const QString &kw : m_keywords) {
-        if (keyword.startsWith(kw, Qt::CaseInsensitive))
-            return true;
-    }
-    return false;
-}
-
-bool SearchQuery::hasKeywords(const QStringList &keywords) const
-{
-    for (const QString &keyword : keywords) {
-        if (m_keywords.contains(keyword))
-            return true;
-    }
-    return false;
+    return m_enabledDocsets.size() == 0 || m_enabledDocsets.contains(docset->name());
 }
 
 int SearchQuery::keywordPrefixSize() const
@@ -148,12 +144,4 @@ QDataStream &Zeal::operator<<(QDataStream &out, const SearchQuery &query)
 {
     out << query.toString();
     return out;
-}
-
-QDataStream &Zeal::operator>>(QDataStream &in, SearchQuery &query)
-{
-    QString str;
-    in >> str;
-    query = SearchQuery::fromString(str);
-    return in;
 }

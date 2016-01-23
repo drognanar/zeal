@@ -140,13 +140,10 @@ bool DashSearchStrategy::validResult(
         const SearchQuery &searchQuery, SearchResult previousResult,
         SearchResult &result)
 {
-    bool docsetEnabled = !searchQuery.hasKeywords() || searchQuery.hasKeywords(m_docset->keywords());
-
     if (previousResult.name.contains(searchQuery.query(), Qt::CaseInsensitive)
-            && docsetEnabled) {
+            && searchQuery.isEnabled(m_docset)) {
         result = previousResult.withScore(Docset::scoreSubstringResult(searchQuery, previousResult.name));
         return true;
-
     } else {
         return false;
     }
@@ -361,7 +358,7 @@ int Docset::scoreSubstringResult(const SearchQuery &query, const QString result)
 
 QList<SearchResult> Docset::search(const SearchQuery &searchQuery, CancellationToken token) const
 {
-    if (searchQuery.hasKeywords() && !searchQuery.hasKeywords(keywords()))
+    if (!searchQuery.isEnabled(this))
         return QList<SearchResult>();
 
     return m_searchStrategy->search(searchQuery, token);

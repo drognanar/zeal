@@ -25,6 +25,7 @@
 
 #include <QObject>
 #include <QKeySequence>
+#include <QMap>
 
 class QSettings;
 
@@ -83,8 +84,10 @@ public:
     QString proxyUserName;
     QString proxyPassword;
 
-    // Other
+    // Docset
     QString docsetPath;
+    QMap<QString, QStringList> docsetKeywordGroups;
+    QMap<QString, QString> docsetKeywords;
 
     // State
     QByteArray windowGeometry;

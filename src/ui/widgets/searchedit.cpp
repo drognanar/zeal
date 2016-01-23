@@ -24,6 +24,7 @@
 #include "searchedit.h"
 
 #include "registry/docsetregistry.h"
+#include "registry/docsetkeywords.h"
 #include "registry/searchquery.h"
 #include "ui/icons.h"
 
@@ -248,7 +249,7 @@ SearchQuery SearchEdit::getSearchQuery(const QString &queryStr) const
 {
     return m_registry != nullptr
             ? m_registry->getSearchQuery(queryStr)
-            : SearchQuery::fromString(queryStr);
+            : SearchQuery::fromString(queryStr, DocsetKeywords());
 }
 
 /**

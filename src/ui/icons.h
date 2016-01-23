@@ -10,6 +10,7 @@ public:
     static char Forward[];
     static char OpenLink[];
     static char Plus[];
+    static char Minus[];
     static char CloseCircled[];
     static char CloseRound[];
     static char Close[];

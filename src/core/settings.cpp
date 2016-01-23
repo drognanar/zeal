@@ -114,9 +114,19 @@ void Settings::load()
 #endif
         QDir().mkpath(docsetPath);
     }
+    QMap<QString, QVariant> variantDocsetKeywordGroups =
+            m_settings->value(QStringLiteral("docset_keyword_groups")).toMap();
+    docsetKeywordGroups.clear();
+    for (QString keyword: variantDocsetKeywordGroups.keys())
+        docsetKeywordGroups.insert(keyword, variantDocsetKeywordGroups.value(keyword).toStringList());
+
+    QMap<QString, QVariant> variantDocsetKeywords =
+            m_settings->value(QStringLiteral("docset_keywords")).toMap();
+    docsetKeywords.clear();
+    for (QString docsetName: variantDocsetKeywords.keys())
+        docsetKeywords.insert(docsetName, variantDocsetKeywords.value(docsetName).toString());
+
     m_settings->endGroup();
-
-
 
     m_settings->beginGroup(GroupState);
     windowGeometry = m_settings->value(QStringLiteral("window_geometry")).toByteArray();
@@ -165,11 +175,21 @@ void Settings::save()
     m_settings->setValue(QStringLiteral("password"), proxyPassword);
     m_settings->endGroup();
 
-#ifndef PORTABLE_BUILD
     m_settings->beginGroup(GroupDocsets);
+#ifndef PORTABLE_BUILD
     m_settings->setValue(QStringLiteral("path"), docsetPath);
-    m_settings->endGroup();
 #endif
+    QMap<QString, QVariant> variantKeywordGroups;
+    for (QString keyword: docsetKeywordGroups.keys())
+        variantKeywordGroups.insert(keyword, docsetKeywordGroups.value(keyword));
+
+    QMap<QString, QVariant> variantKeywords;
+    for (QString docsetName: docsetKeywords.keys())
+        variantKeywords.insert(docsetName, docsetKeywords.value(docsetName));
+
+    m_settings->setValue(QStringLiteral("docset_keyword_groups"), variantKeywordGroups);
+    m_settings->setValue(QStringLiteral("docset_keywords"), variantKeywords);
+    m_settings->endGroup();
 
     QList<QVariant> splitterSizes;
     for (int i = 0; i < sectionsSplitterSizes.size(); i++)

@@ -35,6 +35,7 @@ class QThread;
 
 namespace Zeal {
 
+class DocsetKeywords;
 class SearchQuery;
 
 /**
@@ -63,6 +64,11 @@ public:
     QList<Docset *> docsets() const;
     SearchQuery getSearchQuery(const QString &queryStr) const;
 
+    QStringList keywords() const;
+    void setKeywordGroups(const QMap<QString, QStringList> docsetKeywordGroups);
+    void setUserDefinedKeywords(const QMap<QString, QString> docsetKeywords);
+    QString userDefinedKeyword(const QString &docsetName) const;
+
     /// The number of results that should be retuned by the search.
     static const int MaxResults = 100;
 
@@ -73,6 +79,7 @@ signals:
     void docsetAdded(const QString &name);
     void docsetAboutToBeRemoved(const QString &name);
     void docsetRemoved(const QString &name);
+    void keywordGroupsChanged();
     void queryCompleted();
 
 private slots:
@@ -81,9 +88,12 @@ private slots:
 
 private:
     void addDocsetsFromFolder(const QString &path);
+    DocsetKeywords docsetKeywords() const;
 
     std::unique_ptr<QThread> m_thread;
     QMap<QString, Docset *> m_docsets;
+    QMap<QString, QStringList> m_docsetGroups;
+    QMap<QString, QString> m_userDefinedKeywords;
     QList<SearchResult> m_queryResults;
 };
 

@@ -26,6 +26,7 @@
 
 #include "registry/docsetmetadata.h"
 
+#include <memory>
 #include <QDialog>
 #include <QHash>
 #include <QMap>
@@ -43,6 +44,7 @@ class SettingsDialog;
 namespace Zeal {
 
 class DocsetRegistry;
+class InstalledDocsetModel;
 class ListModel;
 
 namespace Core {
@@ -53,8 +55,11 @@ class SettingsDialog : public QDialog
 {
     Q_OBJECT
 public:
-    explicit SettingsDialog(Core::Application *app, ListModel *listModel, QWidget *parent = nullptr);
+    explicit SettingsDialog(Core::Application *app, QWidget *parent = nullptr);
     ~SettingsDialog() override;
+
+    void navigateToInstallDocsets();
+    void navigateToCreateKeywords();
 
 private slots:
     void addDashFeed();
@@ -80,9 +85,13 @@ private:
         DownloadDocsetList
     };
 
+    int keywordId = 0;
+    QString getKeywordName();
+
     Ui::SettingsDialog *ui = nullptr;
     Core::Application *m_application = nullptr;
     DocsetRegistry *m_docsetRegistry = nullptr;
+    std::unique_ptr<InstalledDocsetModel> m_installedDocsetsModel;
 
     QList<QNetworkReply *> m_replies;
     qint64 m_combinedTotal = 0;
@@ -108,6 +117,9 @@ private:
 
     void displayProgress();
     void resetProgress();
+
+    void displayKeywordGroup(int keywordGroupRow = 0);
+    void updateKeywordGroupDocsets(QListWidgetItem *item);
 
     void loadSettings();
     void saveSettings();

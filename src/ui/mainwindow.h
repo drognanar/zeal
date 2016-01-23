@@ -111,6 +111,7 @@ public:
 
     void bringToFront(const QString &query = QString());
     void createTab();
+    void showSettings();
 
 public slots:
     void toggleWindow();

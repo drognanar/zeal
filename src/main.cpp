@@ -102,8 +102,9 @@ CommandLineParameters parseCommandLine(const QStringList &arguments)
     } else if (arg.startsWith(QLatin1String("dash-plugin:"))) {
         const QUrlQuery urlQuery(stripParameterUrl(arg, QStringLiteral("dash-plugin")));
         const QString keys = urlQuery.queryItemValue(QStringLiteral("keys"));
+        // TODO: improve keys based on new keywords implementation.
         if (!keys.isEmpty())
-            clParams.query.setKeywords(keys.split(QLatin1Char(',')));
+            clParams.query.setKeywordPrefix(keys);
         clParams.query.setQuery(urlQuery.queryItemValue(QStringLiteral("query")));
     } else {
         clParams.query.setQuery(arg);

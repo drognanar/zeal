@@ -83,13 +83,13 @@ const char startPageUrl[] = "qrc:///browser/start.html";
 
 MainWindow::MainWindow(Core::Application *app, QWidget *parent) :
     QMainWindow(parent),
-    ui(std::unique_ptr<Ui::MainWindow>(new Ui::MainWindow)),
+    ui(new Ui::MainWindow),
     m_application(app),
     m_settings(app->settings()),
     m_zealNetworkManager(new NetworkAccessManager(this)),
     m_zealListModel(new ListModel(app->docsetRegistry(), this)),
     m_seeAlsoItemDelegate(new SeeAlsoDelegate()),
-    m_settingsDialog(new SettingsDialog(app, m_zealListModel.get(), this)),
+    m_settingsDialog(new SettingsDialog(app, this)),
     m_deferOpenUrl(new QTimer()),
     m_globalShortcut(new QxtGlobalShortcut(m_settings->showShortcut, this)),
     m_tabBar(new QTabBar(this))
@@ -102,8 +102,7 @@ MainWindow::MainWindow(Core::Application *app, QWidget *parent) :
 
     setWindowIcon(QIcon::fromTheme(QStringLiteral("zeal"), QIcon(QStringLiteral(":/zeal.ico"))));
 
-    if (m_settings->showSystrayIcon)
-        createTrayIcon();
+    applySettings();
 
     // Initialise key grabber.
     connect(m_globalShortcut, &QxtGlobalShortcut::activated, this, &MainWindow::toggleWindow);
@@ -163,9 +162,7 @@ MainWindow::MainWindow(Core::Application *app, QWidget *parent) :
     connect(ui->actionQuit, &QAction::triggered, qApp, &QCoreApplication::quit);
 
     connect(ui->actionOptions, &QAction::triggered, [=]() {
-        m_globalShortcut->setEnabled(false);
-        m_settingsDialog->exec();
-        m_globalShortcut->setEnabled(true);
+        showSettings();
     });
 
     ui->actionBack->setShortcut(QKeySequence::Back);
@@ -284,6 +281,9 @@ MainWindow::MainWindow(Core::Application *app, QWidget *parent) :
             this, [this](const QString &) {
         setupSearchBoxCompletions();
     });
+
+    connect(m_application->docsetRegistry(), &DocsetRegistry::keywordGroupsChanged,
+            this, &MainWindow::setupSearchBoxCompletions);
 
     connect(ui->lineEdit, &QLineEdit::textChanged, [this](const QString &text) {
         if (!m_searchState || text == m_searchState->searchQuery)
@@ -570,6 +570,17 @@ void MainWindow::createTab()
 }
 
 /**
+ * @brief MainWindow::showSettings
+ * Opens the settings dialog.
+ */
+void MainWindow::showSettings()
+{
+    m_globalShortcut->setEnabled(false);
+    m_settingsDialog->exec();
+    m_globalShortcut->setEnabled(true);
+}
+
+/**
  * @brief MainWindow::displayTreeView
  * Displays the tree view with main ToC/search results.
  */
@@ -733,8 +744,9 @@ void MainWindow::onSearchComplete()
 void MainWindow::setupSearchBoxCompletions()
 {
     QStringList completions;
-    for (const Docset * const docset: m_application->docsetRegistry()->docsets())
-        completions << docset->keywords().first() + QLatin1Char(':');
+    for (const QString keyword: m_application->docsetRegistry()->keywords())
+        completions << keyword + QLatin1Char(':');
+
     ui->lineEdit->setCompletions(completions);
 }
 
@@ -1031,13 +1043,15 @@ void MainWindow::keyPressEvent(QKeyEvent *keyEvent)
 
 /**
  * @brief MainWindow::applySettings
- * Updates the UI based to reflect user settings.
+ * Updates application to reflect user settings.
  * Updates the global display shortcut.
  * Updates the tray icon.
  */
 void MainWindow::applySettings()
 {
     m_globalShortcut->setShortcut(m_settings->showShortcut);
+    m_application->docsetRegistry()->setKeywordGroups(m_settings->docsetKeywordGroups);
+    m_application->docsetRegistry()->setUserDefinedKeywords(m_settings->docsetKeywords);
 
     if (m_settings->showSystrayIcon)
         createTrayIcon();
