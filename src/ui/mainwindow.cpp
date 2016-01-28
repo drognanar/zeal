@@ -82,6 +82,16 @@ namespace {
 const char startPageUrl[] = "qrc:///browser/start.html";
 }
 
+SearchState::SearchState()
+    : sectionsList(new SearchModel()),
+      zealSearch(new SearchModel())
+{
+}
+
+SearchState::~SearchState()
+{
+}
+
 MainWindow::MainWindow(Core::Application *app, QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
@@ -242,7 +252,7 @@ MainWindow::MainWindow(Core::Application *app, QWidget *parent) :
 
         Docset *docset = m_application->docsetRegistry()->docset(name);
         if (docset)
-            m_searchState->sectionsList->setResults(docset->relatedLinks(url));
+            currentSearchState()->sectionsList->setResults(docset->relatedLinks(url));
 
         displayViewActions();
     });
@@ -354,7 +364,7 @@ MainWindow::MainWindow(Core::Application *app, QWidget *parent) :
     }
 
     connect(ui->openUrlButton, &QToolButton::clicked, [this]() {
-        const QUrl url(ui->webView->page()->history()->currentItem().url());
+        const QUrl url(WebPageHelpers::url(ui->webView->page()));
         if (url.scheme() != QLatin1String("qrc"))
             QDesktopServices::openUrl(url);
     });
@@ -408,11 +418,7 @@ MainWindow::MainWindow(Core::Application *app, QWidget *parent) :
 
 MainWindow::~MainWindow()
 {
-    for (SearchState *state : m_tabs) {
-        delete state->zealSearch;
-        delete state->sectionsList;
-        delete state;
-    }
+    qDeleteAll(m_tabs);
 }
 
 /**
@@ -527,8 +533,6 @@ void MainWindow::closeTab(int index)
     if (m_searchState == state)
         m_searchState = nullptr;
 
-    delete state->zealSearch;
-    delete state->sectionsList;
     delete state;
 
     m_tabBar->removeTab(index);
@@ -546,11 +550,9 @@ void MainWindow::createTab()
     saveTabState();
 
     SearchState *newTab = new SearchState();
-    newTab->zealSearch = new Zeal::SearchModel();
-    newTab->sectionsList = new Zeal::SearchModel();
 
-    connect(newTab->zealSearch, &SearchModel::queryCompleted, this, &MainWindow::queryCompleted);
-    connect(newTab->sectionsList, &SearchModel::queryCompleted, this, &MainWindow::displaySections);
+    connect(newTab->zealSearch.get(), &SearchModel::queryCompleted, this, &MainWindow::queryCompleted);
+    connect(newTab->sectionsList.get(), &SearchModel::queryCompleted, this, &MainWindow::displaySections);
 
     newTab->page = new QWebPage(ui->webView);
 #ifdef USE_WEBENGINE
@@ -587,7 +589,7 @@ void MainWindow::displayTreeView()
     SearchState *searchState = currentSearchState();
 
     if (!searchState->searchQuery.isEmpty()) {
-        ui->treeView->setModel(searchState->zealSearch);
+        ui->treeView->setModel(searchState->zealSearch.get());
         ui->treeView->setRootIsDecorated(false);
         ui->treeView->reset();
     } else {
@@ -675,7 +677,7 @@ void MainWindow::reloadTabState()
     SearchState *searchState = currentSearchState();
 
     ui->lineEdit->setText(searchState->searchQuery);
-    ui->sections->setModel(searchState->sectionsList);
+    ui->sections->setModel(searchState->sectionsList.get());
 
     displaySections();
     displayTreeView();

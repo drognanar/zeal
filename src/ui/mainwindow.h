@@ -78,13 +78,16 @@ class SettingsDialog;
  */
 struct SearchState
 {
+    SearchState();
+    ~SearchState();
+
     // Currently rendered web page.
     QWebPage *page;
 
     // Model representing sections (see also links).
-    Zeal::SearchModel *sectionsList;
+    std::unique_ptr<Zeal::SearchModel> sectionsList;
     // Model representing searched for items (search query results).
-    Zeal::SearchModel *zealSearch;
+    std::unique_ptr<Zeal::SearchModel> zealSearch;
     // Query being searched for.
     QString searchQuery;
 
