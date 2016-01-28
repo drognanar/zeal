@@ -34,11 +34,39 @@
 #ifdef USE_WEBENGINE
 #include <QWebEngineHistory>
 #include <QWebEnginePage>
+#include <QWebChannel>
 #else
 #include <QWebFrame>
 #include <QWebHistory>
 #include <QWebPage>
 #endif
+
+QUrl WebPageHelpers::url(const QWebPage *page)
+{
+#ifdef USE_WEBENGINE
+    return page->url();
+#else
+    return page->mainFrame()->url();
+#endif
+}
+
+QString WebPageHelpers::title(const QWebPage *page)
+{
+#ifdef USE_WEBENGINE
+    return page->title();
+#else
+    return page->history()->currentItem().title();
+#endif
+}
+
+void WebPageHelpers::load(QWebPage *page, const QUrl &url)
+{
+#ifdef USE_WEBENGINE
+    page->load(url);
+#else
+    page->mainFrame()->load(url);
+#endif
+}
 
 SearchableWebView::SearchableWebView(QWidget *parent) :
     QWidget(parent),
@@ -57,6 +85,7 @@ SearchableWebView::SearchableWebView(QWidget *parent) :
     connect(m_webView.get(), &QWebView::loadFinished, [&](bool ok) {
         Q_UNUSED(ok)
         moveLineEdit();
+        injectRegisteredObjects();
     });
 
     connect(m_webView.get(), &QWebView::urlChanged, this, &SearchableWebView::urlChanged);
@@ -65,6 +94,7 @@ SearchableWebView::SearchableWebView(QWidget *parent) :
 #ifdef USE_WEBENGINE
     // not implemented?
     // connect(m_webView->page(), &QWebPage::linkClicked, this, &SearchableWebView::linkClicked);
+    m_webChannel = std::unique_ptr<QWebChannel>(new QWebChannel(this));
 #else
     connect(m_webView.get(), &QWebView::linkClicked, this, &SearchableWebView::linkClicked);
 #endif
@@ -225,6 +255,15 @@ void SearchableWebView::hideSearch()
 #endif
 }
 
+void SearchableWebView::registerObject(QString name, QObject *object)
+{
+#ifdef USE_WEBENGINE
+    m_webChannel->registerObject(name, object);
+#else
+    m_registeredObjects.insert(name, object);
+#endif
+}
+
 void SearchableWebView::find(const QString &text)
 {
 #ifdef USE_WEBENGINE
@@ -272,4 +311,22 @@ void SearchableWebView::moveLineEdit()
 #endif
     m_searchLineEdit->move(rect().right() - frameWidth - m_searchLineEdit->sizeHint().width(), rect().top());
     m_searchLineEdit->raise();
+}
+
+void SearchableWebView::injectRegisteredObjects()
+{
+#ifdef USE_WEBENGINE
+    m_webView->page()->setWebChannel(m_webChannel.get());
+    m_webView->page()->runJavaScript(
+                "new QWebChannel(qt.webChannelTransport, function (channel) {"
+                "window.zeal = channel.objects.zeal;"
+                "});");
+#else
+    for (const QString objectName: m_registeredObjects.keys()) {
+        m_webView->page()->currentFrame()->addToJavaScriptWindowObject(
+                    objectName,
+                    m_registeredObjects.value(objectName));
+
+    }
+#endif
 }

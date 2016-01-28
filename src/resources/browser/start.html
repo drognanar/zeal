@@ -2,17 +2,30 @@
 <head>
     <title>Start Page</title>
     <link href="main.css" rel="stylesheet" type="text/css">
+    <script type="text/javascript" src="qrc:///qtwebchannel/qwebchannel.js"></script>
+    <script>
+        // Create a stub object to alert in case injection of window.zeal fails.
+        window.zeal = {
+            "installDocsets": function() { alert("Could not execute action. ZealJS did not get injected."); },
+            "createKeywords": function() { alert("Could not execute action. ZealJS did not get injected."); }
+        };
+    </script>
 </head>
 <body onmousedown="event.preventDefault()" oncontextmenu="event.preventDefault()">
     <div class="dynamic"></div>
     <div class="container">
-        <img src="qrc:///icons/logo/128x128.png">
         <h1 id="title">Zeal</h1>
+        <img src="qrc:///icons/logo/128x128.png">
+    </div>
+    <div class="dynamic"></div>
+    <div class="dynamic actions">
+        <a onclick="window.zeal.installDocsets(); return false;" href="#">Install documentation</a>
+        <a onclick="window.zeal.createKeywords(); return false;" href="#">Setup search keywords</a>
     </div>
     <div class="dynamic"></div>
     <footer>
-        <p><a href="https://zealdocs.org">zealdocs.org</a> | <a href="https://twitter.com/zealdocs">@zealdocs</a><p>
-        <p><small><a href="https://www.kapeli.com/dash">Get Dash for OS X or iOS</a></small><p>
+        <p><a href="https://zealdocs.org">zealdocs.org</a> | <a href="https://twitter.com/zealdocs">@zealdocs</a></p>
+        <p><a class="small" href="https://www.kapeli.com/dash">Get Dash for OS X or iOS</a></p>
     </footer>
 </body>
 </html>

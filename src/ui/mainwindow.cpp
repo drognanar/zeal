@@ -25,6 +25,7 @@
 #include "ui_mainwindow.h"
 
 #include "aboutdialog.h"
+#include "zealjs.h"
 #include "networkaccessmanager.h"
 #include "searchitemdelegate.h"
 #include "seealsodelegate.h"
@@ -90,6 +91,7 @@ MainWindow::MainWindow(Core::Application *app, QWidget *parent) :
     m_zealListModel(new ListModel(app->docsetRegistry(), this)),
     m_seeAlsoItemDelegate(new SeeAlsoDelegate()),
     m_settingsDialog(new SettingsDialog(app, this)),
+    m_zealJs(new ZealJS(this)),
     m_deferOpenUrl(new QTimer()),
     m_globalShortcut(new QxtGlobalShortcut(m_settings->showShortcut, this)),
     m_tabBar(new QTabBar(this))
@@ -143,12 +145,6 @@ MainWindow::MainWindow(Core::Application *app, QWidget *parent) :
         if (ui->sections->isVisible())
             m_settings->sectionsSplitterSizes = ui->sectionsSplitter->sizes();
     });
-
-#ifdef USE_WEBENGINE
-    /// FIXME AngularJS workaround (zealnetworkaccessmanager.cpp)
-#else
-    ui->webView->page()->setNetworkAccessManager(m_zealNetworkManager.get());
-#endif
 
     // menu
     if (QKeySequence(QKeySequence::Quit) != QKeySequence(QStringLiteral("Ctrl+Q"))) {
@@ -230,6 +226,16 @@ MainWindow::MainWindow(Core::Application *app, QWidget *parent) :
 
     connect(ui->newTabButton, &QToolButton::clicked, this, &MainWindow::createTab);
 
+    connect(m_zealJs.get(), &ZealJS::navigateToInstallDocsets, [this]() {
+        m_settingsDialog->navigateToInstallDocsets();
+        showSettings();
+    });
+    connect(m_zealJs.get(), &ZealJS::navigateToCreateKeywords, [this]() {
+        m_settingsDialog->navigateToCreateKeywords();
+        showSettings();
+    });
+
+    ui->webView->registerObject("zeal", m_zealJs.get());
     connect(ui->webView, &SearchableWebView::urlChanged, [this](const QUrl &url) {
         const QString name = docsetName(url);
         m_tabBar->setTabIcon(m_tabBar->currentIndex(), docsetIcon(url));
@@ -262,17 +268,10 @@ MainWindow::MainWindow(Core::Application *app, QWidget *parent) :
             this, [this](const QString &name) {
         setupSearchBoxCompletions();
         for (SearchState *searchState : m_tabs) {
-#ifdef USE_WEBENGINE
-            if (docsetName(searchState->page->url()) != name)
+            if (docsetName(WebPageHelpers::url(searchState->page)) != name)
                 continue;
 
-            searchState->page->load(QUrl(startPageUrl));
-#else
-            if (docsetName(searchState->page->mainFrame()->url()) != name)
-                continue;
-
-            searchState->page->mainFrame()->load(QUrl(startPageUrl));
-#endif
+            WebPageHelpers::load(searchState->page, QUrl(startPageUrl));
             /// TODO: Cleanup history
         }
     });
@@ -555,15 +554,14 @@ void MainWindow::createTab()
 
     newTab->page = new QWebPage(ui->webView);
 #ifdef USE_WEBENGINE
-    newTab->page->load(QUrl(startPageUrl));
+    /// FIXME AngularJS workaround (zealnetworkaccessmanager.cpp)
 #else
     newTab->page->setLinkDelegationPolicy(QWebPage::DelegateExternalLinks);
     newTab->page->setNetworkAccessManager(m_zealNetworkManager.get());
-    newTab->page->mainFrame()->load(QUrl(startPageUrl));
 #endif
+    WebPageHelpers::load(newTab->page, QUrl(startPageUrl));
 
     m_tabs.append(newTab);
-
 
     const int index = m_tabBar->addTab(QStringLiteral(""));
     m_tabBar->setCurrentIndex(index);
@@ -640,11 +638,7 @@ void MainWindow::displayTabs()
 
     for (int i = 0; i < m_tabs.count(); i++) {
         SearchState *state = m_tabs.at(i);
-#ifdef USE_WEBENGINE
-        QString title = state->page->title();
-#else
-        QString title = state->page->history()->currentItem().title();
-#endif
+        QString title = WebPageHelpers::title(state->page);
         QAction *action = ui->menuTabs->addAction(title);
         action->setCheckable(true);
         action->setChecked(i == m_tabBar->currentIndex());
@@ -971,10 +965,8 @@ void MainWindow::bringToFront(const QString &query)
     activateWindow();
     ui->lineEdit->setFocus();
 
-    if (!query.isEmpty()) {
+    if (!query.isEmpty())
         ui->lineEdit->setText(query);
-        ui->treeView->activated(ui->treeView->currentIndex());
-    }
 }
 
 void MainWindow::changeEvent(QEvent *event)

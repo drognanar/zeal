@@ -34,9 +34,36 @@
 class QLineEdit;
 class QUrl;
 class QWebPage;
+class QWebChannel;
 class QShortcut;
 
 class WebView;
+
+/**
+ * @brief The WebPageHelpers class.
+ * Provides static helpers to unify interaction with QWebPage and QWebEnginePage.
+ */
+class WebPageHelpers
+{
+public:
+    /**
+     * @brief The url method.
+     * Returns the url of the page.
+     */
+    static QUrl url(const QWebPage *page);
+
+    /**
+     * @brief The title method.
+     * Returns the title of the page.
+     */
+    static QString title(const QWebPage *page);
+
+    /**
+     * @brief The load method.
+     * Makes a web page load the specified url.
+     */
+    static void load(QWebPage *page, const QUrl &url);
+};
 
 /**
  * @brief The SearchableWebView class
@@ -67,6 +94,7 @@ public:
 
     QUrl currentUrl();
     QString currentTitle();
+    void registerObject(QString name, QObject* object);
 
 signals:
     void urlChanged(const QUrl &url);
@@ -88,9 +116,20 @@ private:
     void findNext(const QString &text, bool backward = false);
     void moveLineEdit();
 
+    /**
+     * @brief injectRegisteredObjects
+     */
+    void injectRegisteredObjects();
+
     std::unique_ptr<QLineEdit> m_searchLineEdit;
     std::unique_ptr<QShortcut> m_searchShortcut;
     std::unique_ptr<WebView> m_webView;
+
+#ifdef USE_WEBENGINE
+    std::unique_ptr<QWebChannel> m_webChannel;
+#else
+    QHash<QString, QObject*> m_registeredObjects;
+#endif
 };
 
 #endif // SEARCHABLEWEBVIEW_H

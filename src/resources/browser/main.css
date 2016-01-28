@@ -9,6 +9,20 @@ body {
     -webkit-user-select: none;
 }
 
+footer .small {
+    font-size: x-small;
+}
+
+footer p {
+    margin: 0;
+}
+
+.actions a {
+    font-size: large;
+    margin-bottom: 10px;
+    display: block;
+}
+
 a {
     color: #7a7a7a;
     font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
@@ -21,7 +35,8 @@ a:hover {
 }
 
 #title {
-    font-size: 4em;
+    font-size: 3em;
+    margin-bottom: 0;
 }
 
 .container {

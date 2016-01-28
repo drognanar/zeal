@@ -5,7 +5,7 @@ CONFIG += c++11 silent
 
 # Build features
 webengine {
-    QT += webenginewidgets
+    QT += webenginewidgets webchannel
     DEFINES += USE_WEBENGINE
 } else {
     QT += webkitwidgets

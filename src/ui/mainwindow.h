@@ -63,6 +63,7 @@ class Application;
 class Settings;
 }
 
+class ZealJS;
 class ListModel;
 class NetworkAccessManager;
 class SearchItemDelegate;
@@ -165,6 +166,7 @@ private:
     std::unique_ptr<Zeal::SearchItemDelegate> m_searchItemDelegate;
     std::unique_ptr<Zeal::SeeAlsoDelegate> m_seeAlsoItemDelegate;
     std::unique_ptr<Zeal::SettingsDialog> m_settingsDialog;
+    std::unique_ptr<Zeal::ZealJS> m_zealJs;
 
     std::unique_ptr<QMenu> m_backMenu;
     std::unique_ptr<QMenu> m_forwardMenu;
